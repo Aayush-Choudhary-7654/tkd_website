@@ -56,7 +56,6 @@ export default function ContactPage() {
       <section className="section alt">
         <div className="container">
           <SectionHeading title="Location">
-            The exact Google Maps link can be configured before launch.
           </SectionHeading>
           <iframe
             className="map-frame"
