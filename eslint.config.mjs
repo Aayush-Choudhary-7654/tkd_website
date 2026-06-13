@@ -8,7 +8,15 @@ const eslintConfig = [
   ...nextTypescript,
   {
     rules: {
-      "@next/next/no-img-element": "off"
+      "react/react-in-jsx-scope": "off",
+    "no-unused-vars": "warn",
+    "react/prop-types": "off",
+    "import/prefer-default-export": "off",
+    "react-refresh/only-export-components": "off",
+    "react/jsx-props-no-spreading": "off",
+    "jsx-a11y/anchor-is-valid": "off",
+    "no-console": "warn",
+    "prefer-arrow-callback": "off"
     }
   }
 ];
