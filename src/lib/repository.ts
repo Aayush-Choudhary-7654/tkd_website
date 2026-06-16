@@ -43,6 +43,10 @@ type EditableCollectionName = keyof typeof fallbackContent;
 const localDataDir = path.join(process.cwd(), ".data");
 let mongoDisabledForProcess = false;
 
+function canUseLocalFallback() {
+  return process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+}
+
 function shouldUseMongo() {
   return hasMongoConfig() && !mongoDisabledForProcess && process.env.NEXT_PHASE !== "phase-production-build";
 }
@@ -123,9 +127,9 @@ function normalizeId(value: unknown) {
 }
 
 export function toPlain<T extends Record<string, unknown>>(doc: T) {
-  const { _id, ...rest } = doc;
+  const { _id, id, ...rest } = doc;
   const plain: Record<string, unknown> = {
-    id: doc.id ? String(doc.id) : normalizeId(_id),
+    id: _id ? normalizeId(_id) : normalizeId(id),
     ...rest
   };
 
@@ -171,8 +175,15 @@ export async function insertDocument<T extends Document>(
       const doc = await db.collection(collectionName).findOne({ _id: result.insertedId });
       return doc ? toPlain(doc) : { id: result.insertedId.toHexString(), ...payload };
     } catch (error) {
+      if (!canUseLocalFallback()) {
+        throw error;
+      }
       switchToLocalFallback(collectionName, error);
     }
+  }
+
+  if (!canUseLocalFallback()) {
+    throw new Error("Database is unavailable. Configure MongoDB for admin CRUD.");
   }
 
   const docs = await getLocalEditableDocuments(collectionName);
@@ -196,8 +207,15 @@ export async function updateDocument(
       const doc = await db.collection(collectionName).findOne({ _id: new ObjectId(id) });
       return doc ? toPlain(doc) : null;
     } catch (error) {
+      if (!canUseLocalFallback()) {
+        throw error;
+      }
       switchToLocalFallback(collectionName, error);
     }
+  }
+
+  if (!canUseLocalFallback()) {
+    throw new Error("Database is unavailable. Configure MongoDB for admin CRUD.");
   }
 
   const docs = await getLocalEditableDocuments(collectionName);
@@ -217,8 +235,15 @@ export async function deleteDocument(collectionName: CollectionName, id: string)
       const result = await db.collection(collectionName).deleteOne({ _id: new ObjectId(id) });
       return result.deletedCount > 0;
     } catch (error) {
+      if (!canUseLocalFallback()) {
+        throw error;
+      }
       switchToLocalFallback(collectionName, error);
     }
+  }
+
+  if (!canUseLocalFallback()) {
+    throw new Error("Database is unavailable. Configure MongoDB for admin CRUD.");
   }
 
   const docs = await getLocalEditableDocuments(collectionName);

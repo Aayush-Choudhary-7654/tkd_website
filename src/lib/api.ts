@@ -12,7 +12,12 @@ export function jsonError(error: unknown, fallback = "Something went wrong.") {
     );
   }
 
-  if (error instanceof Error && error.message.includes("MONGODB_URI")) {
+  if (
+    error instanceof Error &&
+    (error.message.includes("MONGODB_URI") ||
+      error.message.includes("MongoDB") ||
+      error.message.includes("Database is unavailable"))
+  ) {
     return Response.json({ error: error.message }, { status: 503 });
   }
 
