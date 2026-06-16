@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
-import { ObjectId, type Document, type OptionalUnlessRequiredId } from "mongodb";
+import { ObjectId, type Document, type Filter, type OptionalUnlessRequiredId } from "mongodb";
 import { getDb, hasMongoConfig } from "./mongodb";
 import {
   defaultAchievements,
@@ -126,6 +126,12 @@ function normalizeId(value: unknown) {
   return String(value || "");
 }
 
+function getDocumentIdFilter(id: string): Filter<Document> {
+  return ObjectId.isValid(id)
+    ? { $or: [{ _id: new ObjectId(id) }, { id }] }
+    : { id };
+}
+
 export function toPlain<T extends Record<string, unknown>>(doc: T) {
   const { _id, id, ...rest } = doc;
   const plain: Record<string, unknown> = {
@@ -198,13 +204,12 @@ export async function updateDocument(
   id: string,
   payload: Document
 ) {
-  if (shouldUseMongo() && ObjectId.isValid(id)) {
+  if (shouldUseMongo()) {
     try {
       const db = await getDb();
-      await db
-        .collection(collectionName)
-        .updateOne({ _id: new ObjectId(id) }, { $set: payload });
-      const doc = await db.collection(collectionName).findOne({ _id: new ObjectId(id) });
+      const filter = getDocumentIdFilter(id);
+      await db.collection(collectionName).updateOne(filter, { $set: payload });
+      const doc = await db.collection(collectionName).findOne(filter);
       return doc ? toPlain(doc) : null;
     } catch (error) {
       if (!canUseLocalFallback()) {
@@ -229,10 +234,10 @@ export async function updateDocument(
 }
 
 export async function deleteDocument(collectionName: CollectionName, id: string) {
-  if (shouldUseMongo() && ObjectId.isValid(id)) {
+  if (shouldUseMongo()) {
     try {
       const db = await getDb();
-      const result = await db.collection(collectionName).deleteOne({ _id: new ObjectId(id) });
+      const result = await db.collection(collectionName).deleteOne(getDocumentIdFilter(id));
       return result.deletedCount > 0;
     } catch (error) {
       if (!canUseLocalFallback()) {
@@ -310,8 +315,15 @@ export async function saveSiteContent(payload: SiteContent): Promise<SiteContent
 
       return mergeSiteContent(result ? (toPlain(result) as Partial<SiteContent>) : doc);
     } catch (error) {
+      if (!canUseLocalFallback()) {
+        throw error;
+      }
       switchToLocalFallback("siteContent", error);
     }
+  }
+
+  if (!canUseLocalFallback()) {
+    throw new Error("Database is unavailable. Configure MongoDB for admin CRUD.");
   }
 
   const local = mergeSiteContent({
