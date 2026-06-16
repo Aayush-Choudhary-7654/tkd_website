@@ -10,83 +10,68 @@ import {
 import { ContactForm } from "@/components/forms";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
-import { getPublicContent } from "@/lib/repository";
+import { getPublicContent, getSiteContent } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
 
-const features = [
-  {
-    icon: ShieldCheck,
-    title: "Certified Coaches",
-    text: "Structured classes led with safety, discipline, and student progression in mind."
-  },
-  {
-    icon: Dumbbell,
-    title: "Professional Training",
-    text: "Technical drills, flexibility, stamina, and sparring practice for real improvement."
-  },
-  {
-    icon: Trophy,
-    title: "Competition Preparation",
-    text: "Focused coaching for tournament rules, poomsae, scoring, and match confidence."
-  },
-  {
-    icon: Sparkles,
-    title: "Fitness & Discipline",
-    text: "A positive routine that builds respect, resilience, coordination, and strength."
-  }
-];
+const featureIcons = [ShieldCheck, Dumbbell, Trophy, Sparkles];
 
 export default async function HomePage() {
-  const { programs, schedule, gallery, achievements } = await getPublicContent();
+  const [site, { programs, schedule, gallery, achievements }] = await Promise.all([
+    getSiteContent(),
+    getPublicContent()
+  ]);
+
+  const features = [
+    { title: site.featureOneTitle, text: site.featureOneText },
+    { title: site.featureTwoTitle, text: site.featureTwoText },
+    { title: site.featureThreeTitle, text: site.featureThreeText },
+    { title: site.featureFourTitle, text: site.featureFourText }
+  ];
+
+  const stats = [
+    { value: site.statOneValue, label: site.statOneLabel },
+    { value: site.statTwoValue, label: site.statTwoLabel },
+    { value: site.statThreeValue, label: site.statThreeLabel }
+  ];
 
   return (
-    <PublicShell>
+    <PublicShell site={site}>
       <section className="hero">
         <div className="container hero-content">
           <p className="eyebrow">
-            <Medal size={18} /> Active Taekwondo Academy
+            <Medal size={18} /> {site.homeHeroEyebrow}
           </p>
-          <h1>Train Like a Champion</h1>
-          <p>
-            Build discipline, strength, focus, and respect through modern Taekwondo
-            training for kids, beginners, advanced students, and competitors.
-          </p>
+          <h1>{site.homeHeroTitle}</h1>
+          <p>{site.homeHeroBody}</p>
           <div className="hero-actions">
             <Link className="button" href="/join">
-              Join Now
+              {site.primaryCtaLabel}
             </Link>
             <Link className="ghost-button" href="/contact#free-trial">
-              Book Free Trial
+              {site.secondaryCtaLabel}
             </Link>
           </div>
         </div>
       </section>
 
       <div className="container stat-strip" aria-label="Academy highlights">
-        <div className="stat">
-          <strong>4</strong>
-          <span>Focused training programs</span>
-        </div>
-        <div className="stat">
-          <strong>6</strong>
-          <span>Class days every week</span>
-        </div>
-        <div className="stat">
-          <strong>100%</strong>
-          <span>Discipline-led coaching</span>
-        </div>
+        {stats.map((stat) => (
+          <div className="stat" key={stat.label}>
+            <strong>{stat.value}</strong>
+            <span>{stat.label}</span>
+          </div>
+        ))}
       </div>
 
       <section className="section" id="why">
         <div className="container">
-          <SectionHeading eyebrow="Why Choose Us" title="Train with purpose">
-            Students learn more than kicks. Every class reinforces focus, confidence,
-            athletic ability, and respect.
+          <SectionHeading eyebrow={site.homeWhyEyebrow} title={site.homeWhyTitle}>
+            {site.homeWhyBody}
           </SectionHeading>
           <div className="grid grid-4">
-            {features.map((feature) => {
-              const Icon = feature.icon;
+            {features.map((feature, index) => {
+              const Icon = featureIcons[index];
               return (
                 <article className="feature-card" key={feature.title}>
                   <div className="feature-icon">
@@ -103,9 +88,8 @@ export default async function HomePage() {
 
       <section className="section alt">
         <div className="container">
-          <SectionHeading eyebrow="Programs" title="Choose your path">
-            From first class to competition readiness, each program has a clear training
-            rhythm and progression.
+          <SectionHeading eyebrow={site.homeProgramsEyebrow} title={site.homeProgramsTitle}>
+            {site.homeProgramsBody}
           </SectionHeading>
           {programs.length ? (
             <div className="grid grid-4">
@@ -131,8 +115,8 @@ export default async function HomePage() {
 
       <section className="section">
         <div className="container">
-          <SectionHeading eyebrow="Schedule" title="Weekly training rhythm">
-            Pick a class time that fits your routine, then start with a trial session.
+          <SectionHeading eyebrow={site.homeScheduleEyebrow} title={site.homeScheduleTitle}>
+            {site.homeScheduleBody}
           </SectionHeading>
           <div className="schedule-table">
             {schedule.slice(0, 6).map((item) => (
@@ -151,8 +135,11 @@ export default async function HomePage() {
 
       <section className="section alt">
         <div className="container">
-          <SectionHeading eyebrow="Achievements" title="Progress worth celebrating">
-            Belt promotions, competitions, and academy milestones keep students motivated.
+          <SectionHeading
+            eyebrow={site.homeAchievementsEyebrow}
+            title={site.homeAchievementsTitle}
+          >
+            {site.homeAchievementsBody}
           </SectionHeading>
           {achievements.length ? (
             <div className="grid grid-3">
@@ -174,8 +161,8 @@ export default async function HomePage() {
 
       <section className="section">
         <div className="container">
-          <SectionHeading eyebrow="Gallery" title="Inside the academy">
-            A look at training energy, events, and competition preparation.
+          <SectionHeading eyebrow={site.homeGalleryEyebrow} title={site.homeGalleryTitle}>
+            {site.homeGalleryBody}
           </SectionHeading>
           {gallery.length ? (
             <div className="gallery-grid">
@@ -195,19 +182,16 @@ export default async function HomePage() {
       <section className="cta-band">
         <div className="container">
           <p className="eyebrow">
-            <Award size={18} /> Start Today
+            <Award size={18} /> {site.homeCtaEyebrow}
           </p>
-          <h2>Start Your Taekwondo Journey Today</h2>
-          <p>
-            Register for a program or book a free trial class and let the academy
-            team guide the next step.
-          </p>
+          <h2>{site.homeCtaTitle}</h2>
+          <p>{site.homeCtaBody}</p>
           <div className="hero-actions">
             <Link className="button" href="/join">
-              Join Now
+              {site.primaryCtaLabel}
             </Link>
             <Link className="ghost-button" href="/contact#free-trial">
-              Book Free Trial
+              {site.secondaryCtaLabel}
             </Link>
           </div>
         </div>
@@ -216,11 +200,11 @@ export default async function HomePage() {
       <section className="section">
         <div className="container grid grid-2">
           <div>
-            <SectionHeading eyebrow="Free Trial" title="Visit the mat">
-              Share your details and the team will help you choose the right class.
+            <SectionHeading eyebrow={site.homeTrialEyebrow} title={site.homeTrialTitle}>
+              {site.homeTrialBody}
             </SectionHeading>
           </div>
-          <ContactForm compact />
+          <ContactForm compact submitLabel={site.trialSubmitLabel} />
         </div>
       </section>
     </PublicShell>

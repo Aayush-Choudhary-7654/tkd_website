@@ -89,9 +89,9 @@ img {
   width: 42px;
   height: 42px;
   place-items: center;
-  border: 2px solid var(--primary);
+  /* border: 2px solid var(--primary); */
   background: #151515;
-  color: var(--primary);
+  /* color: var(--primary); */
   font-weight: 900;
 }
 
@@ -748,6 +748,70 @@ select:focus {
 
 .admin-form label.full {
   grid-column: 1 / -1;
+}
+
+.site-content-panel > .admin-form {
+  grid-template-columns: 1fr;
+}
+
+.admin-fieldset {
+  border: 1px solid var(--line);
+  margin: 0;
+  padding: 16px;
+}
+
+.admin-fieldset legend {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 0 8px;
+  text-transform: uppercase;
+}
+
+.admin-fieldset .admin-form {
+  margin-bottom: 0;
+}
+
+.custom-select-field {
+  display: grid;
+  gap: 10px;
+}
+
+.image-upload-field {
+  display: grid;
+  gap: 12px;
+}
+
+.drop-zone {
+  display: grid;
+  min-height: 118px;
+  place-items: center;
+  gap: 10px;
+  border: 1px dashed var(--line);
+  background: #101010;
+  color: var(--muted);
+  padding: 16px;
+  text-align: center;
+}
+
+.drop-zone svg {
+  color: var(--primary);
+}
+
+.image-upload-preview {
+  width: min(220px, 100%);
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--line);
+  object-fit: cover;
+}
+
+.upload-ok {
+  color: var(--success);
+}
+
+.upload-error {
+  color: var(--error);
 }
 
 .admin-actions {

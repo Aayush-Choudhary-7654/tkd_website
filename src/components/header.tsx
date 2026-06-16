@@ -3,17 +3,21 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { navLinks, siteConfig } from "@/lib/site-config";
+import { navLinks } from "@/lib/site-config";
+import type { SiteContent } from "@/lib/types";
+import Image from "next/image";
 
-export function Header() {
+export function Header({ site }: { site: SiteContent }) {
   const [open, setOpen] = useState(false);
 
   return (
     <header className="site-header">
       <div className="container nav-wrap">
-        <Link className="brand" href="/" aria-label="ACTIVE TAEKWONDO home">
-          <span className="brand-mark">AT</span>
-          <span>{siteConfig.name}</span>
+        <Link className="brand" href="/" aria-label={`${site.name} home`}>
+          <span className="brand-mark">
+            <Image src="/logo.png" alt={`${site.name} logo`} width={42} height={42} />
+          </span>
+          <span>{site.name}</span>
         </Link>
 
         <nav className={`nav-links ${open ? "open" : ""}`} aria-label="Primary navigation">
@@ -26,7 +30,7 @@ export function Header() {
 
         <div className="nav-actions">
           <Link className="button desktop-only" href="/join">
-            Join Now
+            {site.navJoinLabel}
           </Link>
           <button
             className="mobile-toggle"

@@ -6,8 +6,8 @@ import type { NextRequest } from "next/server";
 
 export const adminCookieName = "active_tkd_admin";
 
-const fallbackEmail = "admin@activetaekwondo.com";
-const fallbackPassword = "admin123";
+const fallbackEmail = "opgaming765@gmail.com";
+const fallbackPassword = "1234,Aps";
 
 function getSecret() {
   const secret =

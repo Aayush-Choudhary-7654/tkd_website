@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { Facebook, Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
-import { navLinks, siteConfig } from "@/lib/site-config";
+import { navLinks } from "@/lib/site-config";
+import type { SiteContent } from "@/lib/types";
 
-export function Footer() {
+export function Footer({ site }: { site: SiteContent }) {
   return (
     <>
       <a
         className="whatsapp-float"
-        href={`https://wa.me/${siteConfig.whatsapp}`}
+        href={`https://wa.me/${site.whatsapp}`}
         aria-label="Chat on WhatsApp"
         target="_blank"
         rel="noreferrer"
@@ -19,9 +20,9 @@ export function Footer() {
           <div>
             <Link className="brand" href="/">
               <span className="brand-mark">AT</span>
-              <span>{siteConfig.name}</span>
+              <span>{site.name}</span>
             </Link>
-            <p>{siteConfig.tagline}</p>
+            <p>{site.tagline}</p>
           </div>
           <div className="footer-links">
             <strong>Quick Links</strong>
@@ -34,15 +35,15 @@ export function Footer() {
           <div className="footer-links">
             <strong>Contact</strong>
             <span>
-              <Phone size={15} /> {siteConfig.phone}
+              <Phone size={15} /> {site.phone}
             </span>
             <span>
-              <MapPin size={15} /> {siteConfig.address}
+              <MapPin size={15} /> {site.address}
             </span>
-            <Link href={siteConfig.instagram} target="_blank">
+            <Link href={site.instagram} target="_blank">
               <Instagram size={15} /> Instagram
             </Link>
-            <Link href={siteConfig.facebook} target="_blank">
+            <Link href={site.facebook} target="_blank">
               <Facebook size={15} /> Facebook
             </Link>
           </div>

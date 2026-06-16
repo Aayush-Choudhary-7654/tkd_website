@@ -1,4 +1,18 @@
 import { z } from "zod";
+import { mergeSiteContent, siteContentFields } from "./site-content";
+import type { SiteContent } from "./types";
+
+const imageSourceSchema = z
+  .string()
+  .trim()
+  .min(1, "Image is required.")
+  .refine(
+    (value) =>
+      value.startsWith("/api/v1/uploads/") ||
+      value.startsWith("/uploads/") ||
+      z.string().url().safeParse(value).success,
+    "Image must be a valid URL or uploaded image path."
+  );
 
 export const studentSchema = z.object({
   name: z.string().trim().min(2, "Full name is required."),
@@ -21,7 +35,7 @@ export const programSchema = z.object({
   ageGroup: z.string().trim().min(2),
   schedule: z.string().trim().min(2),
   fees: z.string().trim().optional().default(""),
-  image: z.string().trim().url()
+  image: imageSourceSchema
 });
 
 export const scheduleSchema = z.object({
@@ -31,16 +45,32 @@ export const scheduleSchema = z.object({
 });
 
 export const gallerySchema = z.object({
-  imageUrl: z.string().trim().url(),
-  category: z.enum(["Training", "Events", "Competition"])
+  imageUrl: imageSourceSchema,
+  category: z.string().trim().min(2, "Gallery category is required.")
 });
 
 export const achievementSchema = z.object({
   title: z.string().trim().min(2),
   description: z.string().trim().min(10),
-  image: z.string().trim().url(),
+  image: imageSourceSchema,
   date: z.string().trim().min(4)
 });
+
+const siteContentShape = siteContentFields.reduce(
+  (shape, field) => {
+    shape[field.name] =
+      field.type === "url"
+        ? z.string().trim().url(`${field.label} must be a valid URL.`)
+        : z.string().trim().min(1, `${field.label} is required.`);
+    return shape;
+  },
+  {} as Record<keyof SiteContent, z.ZodType<string>>
+);
+
+export const siteContentSchema = z
+  .object(siteContentShape)
+  .partial()
+  .transform((value) => mergeSiteContent(value as Partial<SiteContent>));
 
 export async function readJson<T>(request: Request, schema: z.ZodSchema<T>) {
   const body = await request.json();

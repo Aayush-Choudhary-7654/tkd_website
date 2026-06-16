@@ -1,3 +1,6 @@
+import { randomUUID } from "crypto";
+import { promises as fs } from "fs";
+import path from "path";
 import { ObjectId, type Document, type OptionalUnlessRequiredId } from "mongodb";
 import { getDb, hasMongoConfig } from "./mongodb";
 import {
@@ -6,6 +9,7 @@ import {
   defaultPrograms,
   defaultSchedule
 } from "./seed-data";
+import { mergeSiteContent } from "./site-content";
 import type {
   Achievement,
   ContactInquiry,
@@ -13,6 +17,7 @@ import type {
   Program,
   PublicContent,
   ScheduleItem,
+  SiteContent,
   Student
 } from "./types";
 
@@ -22,7 +27,8 @@ export type CollectionName =
   | "programs"
   | "schedule"
   | "gallery"
-  | "achievements";
+  | "achievements"
+  | "siteContent";
 
 const fallbackContent = {
   programs: defaultPrograms,
@@ -30,6 +36,83 @@ const fallbackContent = {
   gallery: defaultGallery,
   achievements: defaultAchievements
 };
+
+type EditableCollectionName = keyof typeof fallbackContent;
+
+const localDataDir = path.join(process.cwd(), ".data");
+let mongoDisabledForProcess = false;
+
+function shouldUseMongo() {
+  return hasMongoConfig() && !mongoDisabledForProcess && process.env.NEXT_PHASE !== "phase-production-build";
+}
+
+function switchToLocalFallback(collectionName: CollectionName, error: unknown) {
+  mongoDisabledForProcess = true;
+  const message = error instanceof Error ? error.message : String(error);
+  console.info(`Mongo unavailable for ${collectionName}; using local .data fallback. ${message}`);
+}
+
+async function readLocalDocuments<T>(collectionName: CollectionName): Promise<T[]> {
+  try {
+    const content = await fs.readFile(path.join(localDataDir, `${collectionName}.json`), "utf8");
+    return JSON.parse(content) as T[];
+  } catch (error) {
+    const code = error instanceof Error && "code" in error ? (error as NodeJS.ErrnoException).code : "";
+    if (code !== "ENOENT") {
+      console.error(`Failed to read local ${collectionName}:`, error);
+    }
+    return [];
+  }
+}
+
+async function localCollectionExists(collectionName: CollectionName) {
+  try {
+    await fs.access(path.join(localDataDir, `${collectionName}.json`));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function writeLocalDocuments<T>(collectionName: CollectionName, documents: T[]) {
+  await fs.mkdir(localDataDir, { recursive: true });
+  await fs.writeFile(
+    path.join(localDataDir, `${collectionName}.json`),
+    JSON.stringify(documents, null, 2)
+  );
+}
+
+function getEditableFallback(collectionName: CollectionName) {
+  return collectionName in fallbackContent
+    ? fallbackContent[collectionName as EditableCollectionName]
+    : [];
+}
+
+async function getLocalEditableDocuments(
+  collectionName: CollectionName
+): Promise<Record<string, unknown>[]> {
+  const docs = await readLocalDocuments<Record<string, unknown>>(collectionName);
+  if (docs.length || (await localCollectionExists(collectionName))) {
+    return docs;
+  }
+
+  const fallback = getEditableFallback(collectionName).map((doc) => ({ ...doc })) as Record<
+    string,
+    unknown
+  >[];
+  if (fallback.length) {
+    await writeLocalDocuments(collectionName, fallback);
+  }
+  return fallback;
+}
+
+async function listLocalOrFallback<T extends Record<string, unknown>>(
+  collectionName: CollectionName,
+  fallback: T[] = []
+) {
+  const docs = await readLocalDocuments<T>(collectionName);
+  return docs.length || (await localCollectionExists(collectionName)) ? docs : fallback;
+}
 
 function normalizeId(value: unknown) {
   if (value instanceof ObjectId) {
@@ -58,8 +141,8 @@ export async function listDocuments<T extends Record<string, unknown>>(
   collectionName: CollectionName,
   options: { fallback?: T[]; sort?: Document } = {}
 ): Promise<T[]> {
-  if (!hasMongoConfig()) {
-    return options.fallback || [];
+  if (!shouldUseMongo()) {
+    return listLocalOrFallback(collectionName, options.fallback);
   }
 
   try {
@@ -71,8 +154,8 @@ export async function listDocuments<T extends Record<string, unknown>>(
       .toArray();
     return docs.map((doc) => toPlain(doc) as T);
   } catch (error) {
-    console.error(`Failed to read ${collectionName}:`, error);
-    return options.fallback || [];
+    switchToLocalFallback(collectionName, error);
+    return listLocalOrFallback(collectionName, options.fallback);
   }
 }
 
@@ -80,10 +163,22 @@ export async function insertDocument<T extends Document>(
   collectionName: CollectionName,
   payload: OptionalUnlessRequiredId<T>
 ) {
-  const db = await getDb();
-  const result = await db.collection<T>(collectionName).insertOne(payload);
-  const doc = await db.collection(collectionName).findOne({ _id: result.insertedId });
-  return doc ? toPlain(doc) : { id: result.insertedId.toHexString(), ...payload };
+  if (shouldUseMongo()) {
+    try {
+      const db = await getDb();
+      const result = await db.collection<T>(collectionName).insertOne(payload);
+      const doc = await db.collection(collectionName).findOne({ _id: result.insertedId });
+      return doc ? toPlain(doc) : { id: result.insertedId.toHexString(), ...payload };
+    } catch (error) {
+      switchToLocalFallback(collectionName, error);
+    }
+  }
+
+  const docs = await getLocalEditableDocuments(collectionName);
+  const doc = toPlain({ ...payload, _id: randomUUID() } as Record<string, unknown>);
+  docs.unshift(doc);
+  await writeLocalDocuments(collectionName, docs);
+  return doc;
 }
 
 export async function updateDocument(
@@ -91,18 +186,44 @@ export async function updateDocument(
   id: string,
   payload: Document
 ) {
-  const db = await getDb();
-  await db
-    .collection(collectionName)
-    .updateOne({ _id: new ObjectId(id) }, { $set: payload });
-  const doc = await db.collection(collectionName).findOne({ _id: new ObjectId(id) });
-  return doc ? toPlain(doc) : null;
+  if (shouldUseMongo() && ObjectId.isValid(id)) {
+    try {
+      const db = await getDb();
+      await db
+        .collection(collectionName)
+        .updateOne({ _id: new ObjectId(id) }, { $set: payload });
+      const doc = await db.collection(collectionName).findOne({ _id: new ObjectId(id) });
+      return doc ? toPlain(doc) : null;
+    } catch (error) {
+      switchToLocalFallback(collectionName, error);
+    }
+  }
+
+  const docs = await getLocalEditableDocuments(collectionName);
+  const index = docs.findIndex((doc) => String(doc.id) === id);
+  if (index === -1) {
+    return null;
+  }
+  docs[index] = { ...docs[index], ...payload, id };
+  await writeLocalDocuments(collectionName, docs);
+  return docs[index];
 }
 
 export async function deleteDocument(collectionName: CollectionName, id: string) {
-  const db = await getDb();
-  const result = await db.collection(collectionName).deleteOne({ _id: new ObjectId(id) });
-  return result.deletedCount > 0;
+  if (shouldUseMongo() && ObjectId.isValid(id)) {
+    try {
+      const db = await getDb();
+      const result = await db.collection(collectionName).deleteOne({ _id: new ObjectId(id) });
+      return result.deletedCount > 0;
+    } catch (error) {
+      switchToLocalFallback(collectionName, error);
+    }
+  }
+
+  const docs = await getLocalEditableDocuments(collectionName);
+  const next = docs.filter((doc) => String(doc.id) !== id);
+  await writeLocalDocuments(collectionName, next);
+  return next.length < docs.length;
 }
 
 export async function getPublicContent(): Promise<PublicContent> {
@@ -126,6 +247,54 @@ export async function getPublicContent(): Promise<PublicContent> {
   ]);
 
   return { programs, schedule, gallery, achievements };
+}
+
+export async function getSiteContent(): Promise<SiteContent> {
+  if (!shouldUseMongo()) {
+    const local = await readLocalDocuments<Partial<SiteContent>>("siteContent");
+    return mergeSiteContent(local[0] || {});
+  }
+
+  try {
+    const db = await getDb();
+    const doc = await db.collection("siteContent").findOne({ key: "main" });
+    return mergeSiteContent(doc ? (toPlain(doc) as Partial<SiteContent>) : {});
+  } catch (error) {
+    switchToLocalFallback("siteContent", error);
+    const local = await readLocalDocuments<Partial<SiteContent>>("siteContent");
+    return mergeSiteContent(local[0] || {});
+  }
+}
+
+export async function saveSiteContent(payload: SiteContent): Promise<SiteContent> {
+  const content = mergeSiteContent(payload);
+  const doc: Partial<SiteContent> = { ...content };
+  delete doc.id;
+  if (shouldUseMongo()) {
+    try {
+      const db = await getDb();
+      const result = await db.collection("siteContent").findOneAndUpdate(
+        { key: "main" },
+        {
+          $set: { ...doc, updatedAt: new Date() },
+          $setOnInsert: { createdAt: new Date() }
+        },
+        { upsert: true, returnDocument: "after" }
+      );
+
+      return mergeSiteContent(result ? (toPlain(result) as Partial<SiteContent>) : doc);
+    } catch (error) {
+      switchToLocalFallback("siteContent", error);
+    }
+  }
+
+  const local = mergeSiteContent({
+    ...doc,
+    id: "main",
+    updatedAt: new Date().toISOString()
+  } as Partial<SiteContent>);
+  await writeLocalDocuments("siteContent", [local]);
+  return local;
 }
 
 export async function getStudents() {

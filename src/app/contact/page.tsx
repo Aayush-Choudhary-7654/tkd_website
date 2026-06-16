@@ -2,36 +2,39 @@ import { MapPin, MessageCircle, Phone } from "lucide-react";
 import { ContactForm } from "@/components/forms";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
-import { siteConfig } from "@/lib/site-config";
+import { getMapEmbedUrl } from "@/lib/maps";
+import { getSiteContent } from "@/lib/repository";
 
-export default function ContactPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ContactPage() {
+  const site = await getSiteContent();
+  const mapEmbedUrl = getMapEmbedUrl(site.address, site.mapUrl);
+
   return (
-    <PublicShell>
+    <PublicShell site={site}>
       <section className="page-hero">
         <div className="container">
-          <p className="eyebrow">Contact</p>
-          <h1>Book a visit</h1>
-          <p>
-            Ask a question, schedule a free trial, or confirm the best program before
-            joining.
-          </p>
+          <p className="eyebrow">{site.contactHeroEyebrow}</p>
+          <h1>{site.contactHeroTitle}</h1>
+          <p>{site.contactHeroBody}</p>
         </div>
       </section>
 
       <section className="section" id="free-trial">
         <div className="container grid grid-2">
           <div>
-            <SectionHeading title="Send an inquiry">
-              Share your details and the academy team will follow up.
+            <SectionHeading title={site.contactSectionTitle}>
+              {site.contactSectionBody}
             </SectionHeading>
             <div className="contact-list">
-              <a className="contact-item" href={`tel:${siteConfig.phone}`}>
+              <a className="contact-item" href={`tel:${site.phone}`}>
                 <Phone size={20} />
-                <span>{siteConfig.phone}</span>
+                <span>{site.phone}</span>
               </a>
               <a
                 className="contact-item"
-                href={`https://wa.me/${siteConfig.whatsapp}`}
+                href={`https://wa.me/${site.whatsapp}`}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -40,28 +43,27 @@ export default function ContactPage() {
               </a>
               <a
                 className="contact-item"
-                href={siteConfig.mapUrl}
+                href={site.mapUrl}
                 target="_blank"
                 rel="noreferrer"
               >
                 <MapPin size={20} />
-                <span>{siteConfig.address}</span>
+                <span>{site.address}</span>
               </a>
             </div>
           </div>
-          <ContactForm />
+          <ContactForm submitLabel={site.contactSubmitLabel} />
         </div>
       </section>
 
       <section className="section alt">
         <div className="container">
-          <SectionHeading title="Location">
-          </SectionHeading>
+          <SectionHeading title={site.contactMapTitle} />
           <iframe
             className="map-frame"
-            src={siteConfig.mapUrl}
+            src={mapEmbedUrl}
             loading="lazy"
-            title="ACTIVE TAEKWONDO location map"
+            title={`${site.name} location map`}
           />
         </div>
       </section>

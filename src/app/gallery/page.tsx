@@ -1,29 +1,29 @@
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
-import { getPublicContent } from "@/lib/repository";
+import { getPublicContent, getSiteContent } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
 
 export default async function GalleryPage() {
-  const { gallery, achievements } = await getPublicContent();
+  const [site, { gallery, achievements }] = await Promise.all([
+    getSiteContent(),
+    getPublicContent()
+  ]);
 
   return (
-    <PublicShell>
+    <PublicShell site={site}>
       <section className="page-hero">
         <div className="container">
-          <p className="eyebrow">Gallery</p>
-          <h1>Training, events, competition</h1>
-          <p>
-            A visual record of academy energy, student milestones, and competition
-            preparation.
-          </p>
+          <p className="eyebrow">{site.galleryHeroEyebrow}</p>
+          <h1>{site.galleryHeroTitle}</h1>
+          <p>{site.galleryHeroBody}</p>
         </div>
       </section>
 
       <section className="section">
         <div className="container">
-          <SectionHeading title="Photo gallery">
-            Admin-managed image URLs keep the gallery simple for v1.
+          <SectionHeading title={site.gallerySectionTitle}>
+            {site.gallerySectionBody}
           </SectionHeading>
           {gallery.length ? (
             <div className="gallery-grid">
@@ -42,8 +42,8 @@ export default async function GalleryPage() {
 
       <section className="section alt">
         <div className="container">
-          <SectionHeading title="Achievements">
-            Highlights from belt promotions, tournament results, and student growth.
+          <SectionHeading title={site.galleryAchievementsTitle}>
+            {site.galleryAchievementsBody}
           </SectionHeading>
           {achievements.length ? (
             <div className="grid grid-3">

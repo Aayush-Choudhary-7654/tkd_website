@@ -15,7 +15,6 @@
 .project/localProjectSettings.json
 .project/localProjectSwap.json
 copilot-messages.log
-.vscode/
 
 # Archive formats
 *.zip
@@ -52,20 +51,10 @@ copilot-messages.log
 .DS_Store
 .project/attachments/files/**
 node_modules
-
-# Next.js and local build output
-.next/
-out/
-build/
-coverage/
-*.tsbuildinfo
-next-env.d.ts
-.next-dev*.log
-
-# Environment and package-manager logs
-.env*
-!.env.example
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+.next
+.next-*.log
+.data
+.env.local
+.chrome-test-profile
+.vscode
+.project/fonts

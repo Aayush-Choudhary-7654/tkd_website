@@ -1,17 +1,19 @@
 "use client";
 
-import { LogOut, Pencil, Plus, RefreshCw, Trash2, X } from "lucide-react";
+import { LogOut, Pencil, Plus, RefreshCw, Trash2, Upload, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type {
   Achievement,
   ContactInquiry,
   GalleryItem,
   Program,
   ScheduleItem,
+  SiteContent,
   Student
 } from "@/lib/types";
+import { siteContentFields } from "@/lib/site-content";
 
 type ContentMap = {
   programs: Program[];
@@ -23,7 +25,7 @@ type ContentMap = {
 type Field = {
   name: string;
   label: string;
-  type?: "text" | "url" | "textarea" | "select" | "date";
+  type?: "text" | "url" | "image-url" | "textarea" | "select" | "select-custom" | "date";
   options?: string[];
   full?: boolean;
 };
@@ -47,7 +49,7 @@ const configs: Config[] = [
       { name: "ageGroup", label: "Age Group" },
       { name: "schedule", label: "Schedule" },
       { name: "fees", label: "Fees" },
-      { name: "image", label: "Image URL", type: "url", full: true },
+      { name: "image", label: "Image", type: "image-url", full: true },
       { name: "description", label: "Description", type: "textarea", full: true }
     ]
   },
@@ -68,12 +70,12 @@ const configs: Config[] = [
     endpoint: "/api/v1/gallery",
     responseKey: "gallery",
     fields: [
-      { name: "imageUrl", label: "Image URL", type: "url", full: true },
+      { name: "imageUrl", label: "Image", type: "image-url", full: true },
       {
         name: "category",
         label: "Category",
-        type: "select",
-        options: ["Training", "Events", "Competition"]
+        type: "select-custom",
+        options: ["Training", "Events", "Competition", "Belt Ceremony", "Workshop"]
       }
     ]
   },
@@ -85,11 +87,20 @@ const configs: Config[] = [
     fields: [
       { name: "title", label: "Title" },
       { name: "date", label: "Date", type: "date" },
-      { name: "image", label: "Image URL", type: "url", full: true },
+      { name: "image", label: "Image", type: "image-url", full: true },
       { name: "description", label: "Description", type: "textarea", full: true }
     ]
   }
 ];
+
+const siteFieldGroups = siteContentFields.reduce<Record<string, typeof siteContentFields>>(
+  (groups, field) => {
+    groups[field.group] = groups[field.group] || [];
+    groups[field.group].push(field);
+    return groups;
+  },
+  {}
+);
 
 function dateInputValue(value: unknown) {
   if (!value) return "";
@@ -101,6 +112,10 @@ function itemLabel(item: Record<string, unknown>) {
   return String(item.name || item.title || item.program || item.category || item.id);
 }
 
+function isPresetValue(field: Field, value: string) {
+  return Boolean(field.options?.includes(value));
+}
+
 function emptyForm(fields: Field[]) {
   return fields.reduce<Record<string, string>>((acc, field) => {
     acc[field.name] = field.type === "date" ? new Date().toISOString().slice(0, 10) : "";
@@ -109,6 +124,106 @@ function emptyForm(fields: Field[]) {
     }
     return acc;
   }, {});
+}
+
+function ImageUploadField({
+  value,
+  onChange
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState("");
+  const [statusKind, setStatusKind] = useState<"error" | "success">("success");
+  const allowedTypes = ["image/gif", "image/jpeg", "image/png", "image/webp"];
+  const maxBytes = 5 * 1024 * 1024;
+
+  async function uploadFile(file?: File) {
+    if (!file) return;
+
+    setStatus("");
+    setStatusKind("success");
+
+    if (!allowedTypes.includes(file.type)) {
+      setStatus("Only PNG, JPG, WebP, and GIF images are allowed.");
+      setStatusKind("error");
+      return;
+    }
+
+    if (file.size > maxBytes) {
+      setStatus("Image must be 5MB or smaller.");
+      setStatusKind("error");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const body = new FormData();
+      body.append("file", file);
+
+      const response = await fetch("/api/v1/uploads", {
+        method: "POST",
+        body
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setStatus(data?.error || "Upload failed.");
+        setStatusKind("error");
+        return;
+      }
+
+      onChange(data.url);
+      setStatus("Uploaded to Cloudinary. Click Create to save this item.");
+      setStatusKind("success");
+    } catch {
+      setStatus("Upload failed. Please try again.");
+      setStatusKind("error");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    }
+  }
+
+  return (
+    <div className="image-upload-field">
+      <input
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Paste image URL or upload a file"
+        required
+      />
+      <div
+        className="drop-zone"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          void uploadFile(event.dataTransfer.files[0]);
+        }}
+      >
+        <Upload size={18} />
+        <span>{uploading ? "Uploading..." : "Drop image here"}</span>
+        <button className="ghost-button" type="button" onClick={() => inputRef.current?.click()}>
+          Choose File
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          hidden
+          onChange={(event) => void uploadFile(event.target.files?.[0])}
+        />
+      </div>
+      {value ? <img className="image-upload-preview" src={value} alt="" /> : null}
+      {status ? <span className={statusKind === "error" ? "upload-error" : "upload-ok"}>{status}</span> : null}
+    </div>
+  );
 }
 
 function LeadTables({
@@ -239,10 +354,15 @@ function CrudPanel({
 
     const response = await fetch(`${config.endpoint}/${id}`, { method: "DELETE" });
     setPending(false);
+    const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      const data = await response.json().catch(() => null);
       setStatus(data?.error || "Delete failed.");
+      return;
+    }
+
+    if (data?.deleted === false) {
+      setStatus("Delete failed. Item was not found.");
       return;
     }
 
@@ -286,6 +406,43 @@ function CrudPanel({
               >
                 {field.options?.map((option) => <option key={option}>{option}</option>)}
               </select>
+            ) : field.type === "image-url" ? (
+              <ImageUploadField
+                value={form[field.name] || ""}
+                onChange={(value) => setForm((current) => ({ ...current, [field.name]: value }))}
+              />
+            ) : field.type === "select-custom" ? (
+              <div className="custom-select-field">
+                <select
+                  value={
+                    isPresetValue(field, form[field.name] || "")
+                      ? form[field.name]
+                      : "__custom"
+                  }
+                  onChange={(event) =>
+                    setForm((value) => ({
+                      ...value,
+                      [field.name]:
+                        event.target.value === "__custom" ? "" : event.target.value
+                    }))
+                  }
+                  required
+                >
+                  {field.options?.map((option) => <option key={option}>{option}</option>)}
+                  <option value="__custom">Custom category</option>
+                </select>
+                {!isPresetValue(field, form[field.name] || "") ? (
+                  <input
+                    type="text"
+                    value={form[field.name] || ""}
+                    onChange={(event) =>
+                      setForm((value) => ({ ...value, [field.name]: event.target.value }))
+                    }
+                    placeholder="Enter custom category"
+                    required
+                  />
+                ) : null}
+              </div>
             ) : (
               <input
                 type={field.type || "text"}
@@ -363,17 +520,115 @@ function CrudPanel({
   );
 }
 
+function SiteContentPanel({
+  siteContent,
+  onChange
+}: {
+  siteContent: SiteContent;
+  onChange: (siteContent: SiteContent) => void;
+}) {
+  const [form, setForm] = useState<SiteContent>(siteContent);
+  const [status, setStatus] = useState("");
+  const [pending, setPending] = useState(false);
+
+  async function refresh() {
+    const response = await fetch("/api/v1/site-content");
+    const data = await response.json();
+    if (data.siteContent) {
+      setForm(data.siteContent);
+      onChange(data.siteContent);
+    }
+  }
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setStatus("");
+
+    const response = await fetch("/api/v1/site-content", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form)
+    });
+
+    setPending(false);
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      setStatus(data?.error || "Site content save failed.");
+      return;
+    }
+
+    const data = await response.json();
+    setForm(data.siteContent);
+    onChange(data.siteContent);
+    setStatus("Site content updated.");
+  }
+
+  return (
+    <section className="admin-panel site-content-panel">
+      <h2>Site Content</h2>
+      <form className="admin-form" onSubmit={onSubmit}>
+        {Object.entries(siteFieldGroups).map(([group, fields]) => (
+          <fieldset className="admin-fieldset" key={group}>
+            <legend>{group}</legend>
+            <div className="admin-form">
+              {fields.map((field) => (
+                <label key={field.name} className={field.full ? "full" : undefined}>
+                  {field.label}
+                  {field.type === "textarea" ? (
+                    <textarea
+                      value={String(form[field.name] || "")}
+                      onChange={(event) =>
+                        setForm((value) => ({ ...value, [field.name]: event.target.value }))
+                      }
+                      required
+                    />
+                  ) : (
+                    <input
+                      type={field.type || "text"}
+                      value={String(form[field.name] || "")}
+                      onChange={(event) =>
+                        setForm((value) => ({ ...value, [field.name]: event.target.value }))
+                      }
+                      required
+                    />
+                  )}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ))}
+        <div className="admin-actions">
+          <button className="button" type="submit" disabled={pending}>
+            <Pencil size={17} /> {pending ? "Saving..." : "Save Site Content"}
+          </button>
+          <button className="ghost-button" type="button" onClick={refresh}>
+            <RefreshCw size={17} /> Refresh
+          </button>
+        </div>
+        <p className={`form-status ${status.includes("failed") ? "error" : "success"}`}>
+          {status}
+        </p>
+      </form>
+    </section>
+  );
+}
+
 export function AdminDashboard({
   students,
   contacts,
-  content
+  content,
+  siteContent
 }: {
   students: Student[];
   contacts: ContactInquiry[];
   content: ContentMap;
+  siteContent: SiteContent;
 }) {
   const router = useRouter();
   const [contentState, setContentState] = useState<ContentMap>(content);
+  const [siteContentState, setSiteContentState] = useState<SiteContent>(siteContent);
   const counts = useMemo(
     () => [
       ["Students", students.length],
@@ -422,6 +677,16 @@ export function AdminDashboard({
         </div>
 
         <LeadTables students={students} contacts={contacts} />
+
+        <div className="section-heading" style={{ marginTop: 34 }}>
+          <div>
+            <p className="eyebrow">Website Copy</p>
+            <h2>Public Site Settings</h2>
+          </div>
+          <p>These fields update the header, footer, page copy, CTAs, and contact details.</p>
+        </div>
+
+        <SiteContentPanel siteContent={siteContentState} onChange={setSiteContentState} />
 
         <div className="section-heading" style={{ marginTop: 34 }}>
           <div>

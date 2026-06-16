@@ -1,30 +1,27 @@
 import Link from "next/link";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
-import { getPublicContent } from "@/lib/repository";
+import { getPublicContent, getSiteContent } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProgramsPage() {
-  const { programs } = await getPublicContent();
+  const [site, { programs }] = await Promise.all([getSiteContent(), getPublicContent()]);
 
   return (
-    <PublicShell>
+    <PublicShell site={site}>
       <section className="page-hero">
         <div className="container">
-          <p className="eyebrow">Programs</p>
-          <h1>Training for every level</h1>
-          <p>
-            Choose the right path for your age, ability, and goals. The academy can
-            recommend a class after your first conversation or trial.
-          </p>
+          <p className="eyebrow">{site.programsHeroEyebrow}</p>
+          <h1>{site.programsHeroTitle}</h1>
+          <p>{site.programsHeroBody}</p>
         </div>
       </section>
 
       <section className="section">
         <div className="container">
-          <SectionHeading title="Available programs">
-            All program details are managed from the admin dashboard.
+          <SectionHeading title={site.programsSectionTitle}>
+            {site.programsSectionBody}
           </SectionHeading>
           {programs.length ? (
             <div className="grid grid-2">
@@ -41,7 +38,7 @@ export default async function ProgramsPage() {
                     </div>
                     <div className="hero-actions">
                       <Link className="button" href="/join">
-                        Join Now
+                        {site.primaryCtaLabel}
                       </Link>
                     </div>
                   </div>

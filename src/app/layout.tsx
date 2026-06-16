@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { getSiteContent } from "@/lib/repository";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "ACTIVE TAEKWONDO",
-  description:
-    "Taekwondo training for discipline, strength, respect, fitness, and competition readiness."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteContent();
+
+  return {
+    title: site.name,
+    description: site.metaDescription
+  };
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>{children}</body>
     </html>
   );

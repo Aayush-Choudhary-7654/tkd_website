@@ -19,7 +19,12 @@ export async function getMongoClient() {
     clientPromise = client.connect();
   }
 
-  return clientPromise;
+  try {
+    return await clientPromise;
+  } catch (error) {
+    clientPromise = null;
+    throw error;
+  }
 }
 
 export async function getDb() {

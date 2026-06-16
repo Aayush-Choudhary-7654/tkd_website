@@ -1,31 +1,27 @@
 import Link from "next/link";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
-import { getPublicContent } from "@/lib/repository";
+import { getPublicContent, getSiteContent } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
 
 export default async function SchedulePage() {
-  const { schedule } = await getPublicContent();
+  const [site, { schedule }] = await Promise.all([getSiteContent(), getPublicContent()]);
 
   return (
-    <PublicShell>
+    <PublicShell site={site}>
       <section className="page-hero">
         <div className="container">
-          <p className="eyebrow">Schedule</p>
-          <h1>Find your class time</h1>
-          <p>
-            Training runs across the week for kids, beginners, advanced students, and
-            competition-focused athletes.
-          </p>
+          <p className="eyebrow">{site.scheduleHeroEyebrow}</p>
+          <h1>{site.scheduleHeroTitle}</h1>
+          <p>{site.scheduleHeroBody}</p>
         </div>
       </section>
 
       <section className="section">
         <div className="container">
-          <SectionHeading title="Weekly class schedule">
-            Class availability can change during events or tournaments, so contact
-            the academy before your first visit.
+          <SectionHeading title={site.scheduleSectionTitle}>
+            {site.scheduleSectionBody}
           </SectionHeading>
           <div className="schedule-table">
             {schedule.map((item) => (
@@ -41,7 +37,7 @@ export default async function SchedulePage() {
           </div>
           <div className="hero-actions">
             <Link className="button" href="/contact#free-trial">
-              Book Free Trial
+              {site.secondaryCtaLabel}
             </Link>
           </div>
         </div>
