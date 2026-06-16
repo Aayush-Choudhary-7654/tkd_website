@@ -10,6 +10,7 @@ import {
   defaultSchedule
 } from "./seed-data";
 import { mergeSiteContent } from "./site-content";
+import { sortScheduleItems } from "./schedule-order";
 import type {
   Achievement,
   ContactInquiry,
@@ -246,7 +247,7 @@ export async function getPublicContent(): Promise<PublicContent> {
     })
   ]);
 
-  return { programs, schedule, gallery, achievements };
+  return { programs, schedule: sortScheduleItems(schedule), gallery, achievements };
 }
 
 export async function getSiteContent(): Promise<SiteContent> {

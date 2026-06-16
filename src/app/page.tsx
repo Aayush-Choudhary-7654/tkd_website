@@ -119,7 +119,7 @@ export default async function HomePage() {
             {site.homeScheduleBody}
           </SectionHeading>
           <div className="schedule-table">
-            {schedule.slice(0, 6).map((item) => (
+            {schedule.map((item) => (
               <div className="schedule-row" key={item.id}>
                 <strong>{item.day}</strong>
                 <span>{item.time}</span>

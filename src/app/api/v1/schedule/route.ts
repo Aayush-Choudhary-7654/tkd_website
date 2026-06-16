@@ -1,6 +1,7 @@
 import { requireAdminRequest } from "@/lib/auth";
 import { jsonError, jsonOk } from "@/lib/api";
 import { insertDocument, listDocuments } from "@/lib/repository";
+import { sortScheduleItems } from "@/lib/schedule-order";
 import { defaultSchedule } from "@/lib/seed-data";
 import type { ScheduleItem } from "@/lib/types";
 import { readJson, scheduleSchema } from "@/lib/validation";
@@ -10,7 +11,7 @@ export async function GET() {
     fallback: defaultSchedule,
     sort: { day: 1, time: 1 }
   });
-  return jsonOk({ schedule });
+  return jsonOk({ schedule: sortScheduleItems(schedule) });
 }
 
 export async function POST(request: Request) {
