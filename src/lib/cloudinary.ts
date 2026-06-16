@@ -12,8 +12,23 @@ const apiKey = process.env.CLOUDINARY_API_KEY?.trim() || "";
 const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim() || "";
 const uploadFolder = process.env.CLOUDINARY_UPLOAD_FOLDER?.trim() || "active-taekwondo/gallery";
 
+export function getCloudinaryConfigStatus() {
+  const missing = [
+    ["CLOUDINARY_CLOUD_NAME", cloudName],
+    ["CLOUDINARY_API_KEY", apiKey],
+    ["CLOUDINARY_API_SECRET", apiSecret]
+  ]
+    .filter(([, value]) => placeholderValues.has(value))
+    .map(([key]) => key);
+
+  return {
+    configured: missing.length === 0,
+    missing
+  };
+}
+
 export function hasCloudinaryConfig() {
-  return ![cloudName, apiKey, apiSecret].some((value) => placeholderValues.has(value));
+  return getCloudinaryConfigStatus().configured;
 }
 
 function signUpload(params: Record<string, string>) {
@@ -33,9 +48,10 @@ type CloudinaryUploadResponse = {
 };
 
 export async function uploadImageToCloudinary(file: File) {
-  if (!hasCloudinaryConfig()) {
+  const config = getCloudinaryConfigStatus();
+  if (!config.configured) {
     throw new Error(
-      "Cloudinary is not configured. Fill CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in .env.local."
+      `Cloudinary is not configured. Missing ${config.missing.join(", ")}.`
     );
   }
 
