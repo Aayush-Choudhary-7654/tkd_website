@@ -1,6 +1,6 @@
-import { requireAdminRequest } from "@/lib/auth";
 import { jsonError, jsonOk } from "@/lib/api";
 import { insertDocument, listDocuments } from "@/lib/repository";
+import { requireSecureAdminJsonMutation } from "@/lib/security";
 import { defaultPrograms } from "@/lib/seed-data";
 import type { Program } from "@/lib/types";
 import { programSchema, readJson } from "@/lib/validation";
@@ -14,7 +14,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const unauthorized = await requireAdminRequest(request);
+  const unauthorized = await requireSecureAdminJsonMutation(request, "admin-programs");
   if (unauthorized) return unauthorized;
 
   try {

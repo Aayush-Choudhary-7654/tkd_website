@@ -1,10 +1,11 @@
-import { adminCookieName } from "@/lib/auth";
+import { adminCookie } from "@/lib/auth";
+import { requireSameOrigin } from "@/lib/security";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const originError = requireSameOrigin(request);
+  if (originError) return originError;
+
   const response = Response.json({ ok: true });
-  response.headers.append(
-    "Set-Cookie",
-    `${adminCookieName}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`
-  );
+  response.headers.append("Set-Cookie", adminCookie("", 0));
   return response;
 }

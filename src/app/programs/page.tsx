@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MediaRenderer } from "@/components/media-renderer";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
 import { getPublicContent, getSiteContent } from "@/lib/repository";
@@ -27,7 +28,7 @@ export default async function ProgramsPage() {
             <div className="grid grid-2">
               {programs.map((program) => (
                 <article className="program-card" key={program.id}>
-                  <img className="media" src={program.image} alt="" />
+                  <MediaRenderer className="media" src={program.image} />
                   <div className="program-body">
                     <h3>{program.name}</h3>
                     <p>{program.description}</p>

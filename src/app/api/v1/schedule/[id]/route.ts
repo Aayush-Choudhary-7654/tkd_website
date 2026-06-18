@@ -1,13 +1,13 @@
-import { requireAdminRequest } from "@/lib/auth";
 import { jsonError, jsonOk } from "@/lib/api";
 import { deleteDocument, updateDocument } from "@/lib/repository";
+import { requireSecureAdminJsonMutation, requireSecureAdminMutation } from "@/lib/security";
 import { readJson, scheduleSchema } from "@/lib/validation";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const unauthorized = await requireAdminRequest(request);
+  const unauthorized = await requireSecureAdminJsonMutation(request, "admin-schedule");
   if (unauthorized) return unauthorized;
 
   try {
@@ -27,7 +27,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const unauthorized = await requireAdminRequest(request);
+  const unauthorized = await requireSecureAdminMutation(request, "admin-schedule");
   if (unauthorized) return unauthorized;
 
   try {

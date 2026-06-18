@@ -7,7 +7,7 @@ import type { NextRequest } from "next/server";
 export const adminCookieName = "active_tkd_admin";
 
 const fallbackEmail = "opgaming765@gmail.com";
-const fallbackPassword = "1234,Aps";
+const fallbackPassword = "ACTIVE123!@#";
 
 function getSecret() {
   const secret =
@@ -34,6 +34,11 @@ export async function verifyAdminCredentials(email: string, password: string) {
   }
 
   return process.env.NODE_ENV !== "production" && password === fallbackPassword;
+}
+
+export function adminCookie(value: string, maxAge: number) {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  return `${adminCookieName}=${value}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${maxAge}; Priority=High${secure}`;
 }
 
 export async function createAdminToken(email: string) {

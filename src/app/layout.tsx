@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getSiteContent } from "@/lib/repository";
+import "locomotive-scroll/dist/locomotive-scroll.css";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {

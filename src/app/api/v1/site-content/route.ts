@@ -1,6 +1,6 @@
-import { requireAdminRequest } from "@/lib/auth";
 import { jsonError, jsonOk } from "@/lib/api";
 import { getSiteContent, saveSiteContent } from "@/lib/repository";
+import { requireSecureAdminJsonMutation } from "@/lib/security";
 import { readJson, siteContentSchema } from "@/lib/validation";
 
 export async function GET() {
@@ -9,7 +9,7 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const unauthorized = await requireAdminRequest(request);
+  const unauthorized = await requireSecureAdminJsonMutation(request, "admin-site-content");
   if (unauthorized) return unauthorized;
 
   try {

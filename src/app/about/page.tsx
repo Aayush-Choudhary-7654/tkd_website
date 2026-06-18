@@ -1,4 +1,5 @@
 import { Award, HeartHandshake, Shield, Target } from "lucide-react";
+import { MediaRenderer } from "@/components/media-renderer";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
 import { getSiteContent } from "@/lib/repository";
@@ -33,7 +34,7 @@ export default async function AboutPage() {
               {site.aboutAcademyBody}
             </SectionHeading>
           </div>
-          <img className="media" src={site.aboutAcademyImage} alt="" />
+          <MediaRenderer className="media" src={site.aboutAcademyImage} />
         </div>
       </section>
 

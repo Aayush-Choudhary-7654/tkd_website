@@ -8,6 +8,7 @@ import {
   Trophy
 } from "lucide-react";
 import { ContactForm } from "@/components/forms";
+import { MediaRenderer } from "@/components/media-renderer";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
 import { getPublicContent, getSiteContent } from "@/lib/repository";
@@ -95,7 +96,7 @@ export default async function HomePage() {
             <div className="grid grid-4">
               {programs.slice(0, 4).map((program) => (
                 <article className="program-card" key={program.id}>
-                  <img className="media" src={program.image} alt="" />
+                  <MediaRenderer className="media" src={program.image} />
                   <div className="program-body">
                     <h3>{program.name}</h3>
                     <p>{program.description}</p>
@@ -145,7 +146,7 @@ export default async function HomePage() {
             <div className="grid grid-3">
               {achievements.slice(0, 3).map((achievement) => (
                 <article className="achievement-card" key={achievement.id}>
-                  <img className="media" src={achievement.image} alt="" />
+                  <MediaRenderer className="media" src={achievement.image} />
                   <div className="achievement-body">
                     <h3>{achievement.title}</h3>
                     <p>{achievement.description}</p>
@@ -168,7 +169,7 @@ export default async function HomePage() {
             <div className="gallery-grid">
               {gallery.slice(0, 5).map((item) => (
                 <figure className="gallery-tile" key={item.id}>
-                  <img src={item.imageUrl} alt="" />
+                  <MediaRenderer src={item.imageUrl} />
                   <figcaption className="gallery-label">{item.category}</figcaption>
                 </figure>
               ))}

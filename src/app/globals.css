@@ -46,11 +46,132 @@ img {
   max-width: 100%;
 }
 
+video {
+  display: block;
+  max-width: 100%;
+}
+
+.loading-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(255, 45, 45, 0.18), transparent 32%),
+    linear-gradient(145deg, #050505, #121212);
+}
+
+.loading-mark {
+  position: relative;
+  display: grid;
+  width: min(54vw, 360px);
+  aspect-ratio: 1;
+  place-items: center;
+}
+
+.loading-letter {
+  position: relative;
+  z-index: 2;
+  font-family: Oswald, Impact, sans-serif;
+  font-size: clamp(8rem, 28vw, 18rem);
+  font-weight: 900;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 3px rgba(255, 255, 255, 0.92);
+  text-shadow: 0 0 36px rgba(255, 45, 45, 0.42);
+}
+
+.loading-ring,
+.loading-orbit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.loading-ring {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.loading-ring-one {
+  inset: 10%;
+}
+
+.loading-ring-two {
+  inset: 25%;
+  border-color: rgba(245, 185, 66, 0.2);
+}
+
+.loading-orbit {
+  background:
+    conic-gradient(from 0deg, transparent 0 18%, #ff2d2d 30%, #f5b942 44%, #29d3ff 58%, transparent 72% 100%);
+  mask: radial-gradient(circle, transparent 59%, #000 60% 64%, transparent 65%);
+  animation: loadingSpin 1.2s linear infinite;
+}
+
+.loading-orbit-two {
+  inset: 18%;
+  animation-duration: 1.9s;
+  animation-direction: reverse;
+  opacity: 0.72;
+}
+
+@keyframes loadingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .page-shell {
   min-height: 100vh;
   background:
     linear-gradient(180deg, rgba(255, 45, 45, 0.08), transparent 320px),
     var(--bg);
+}
+
+.public-scroll {
+  min-height: 100vh;
+}
+
+.public-cursor {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.public-cursor-dot,
+.public-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.public-cursor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 18px rgba(255, 45, 45, 0.5);
+}
+
+.public-cursor-ring {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 45, 45, 0.7);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.has-custom-cursor .page-shell a,
+.has-custom-cursor .page-shell button,
+.has-custom-cursor .page-shell .gallery-tile,
+.has-custom-cursor .page-shell .program-card,
+.has-custom-cursor .page-shell .achievement-card,
+.has-custom-cursor .page-shell .contact-item {
+  cursor: none;
 }
 
 .container {
@@ -360,17 +481,70 @@ img {
 
 .program-card,
 .achievement-card {
+  position: relative;
   overflow: hidden;
+  transform-style: preserve-3d;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+  will-change: transform;
 }
 
 .media {
   aspect-ratio: 4 / 3;
   width: 100%;
+  background: #050505;
+  filter: saturate(0.96) contrast(1.02);
   object-fit: cover;
+  transition:
+    filter 260ms ease,
+    opacity 180ms ease,
+    transform 520ms ease;
+}
+
+.program-card:hover .media,
+.achievement-card:hover .media {
+  filter: saturate(1.18) contrast(1.08);
+  transform: scale(1.075);
+}
+
+.program-card:hover,
+.achievement-card:hover,
+.gallery-tile:hover {
+  border-color: rgba(255, 45, 45, 0.46);
+  box-shadow:
+    0 20px 54px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(245, 185, 66, 0.08);
+}
+
+.program-card::before,
+.achievement-card::before,
+.gallery-tile::before {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(115deg, transparent 0 34%, rgba(255, 255, 255, 0.22) 44%, rgba(245, 185, 66, 0.12) 50%, transparent 62% 100%);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-125%);
+  transition:
+    opacity 220ms ease,
+    transform 780ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.program-card:hover::before,
+.achievement-card:hover::before,
+.gallery-tile:hover::before {
+  opacity: 1;
+  transform: translateX(125%);
 }
 
 .program-body,
 .achievement-body {
+  position: relative;
+  z-index: 3;
   padding: 22px;
 }
 
@@ -431,6 +605,11 @@ img {
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--panel);
+  transform-style: preserve-3d;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+  will-change: transform;
 }
 
 .gallery-tile:nth-child(4n + 1) {
@@ -446,26 +625,61 @@ img {
   grid-column: span 4;
 }
 
-.gallery-tile img {
+.gallery-tile img,
+.gallery-tile video {
   width: 100%;
   height: 100%;
   min-height: inherit;
+  background: #050505;
+  filter: saturate(0.94) contrast(1.04);
   object-fit: cover;
-  transition: transform 220ms ease;
+  transition:
+    filter 260ms ease,
+    transform 580ms ease;
 }
 
-.gallery-tile:hover img {
-  transform: scale(1.04);
+.gallery-tile:hover img,
+.gallery-tile:hover video {
+  filter: saturate(1.2) contrast(1.1);
+  transform: scale(1.09);
+}
+
+.gallery-tile::after {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 62%;
+  background:
+    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.72)),
+    radial-gradient(circle at 18% 100%, rgba(255, 45, 45, 0.22), transparent 42%);
+  content: "";
+  opacity: 0.9;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.gallery-tile:hover::after {
+  opacity: 1;
 }
 
 .gallery-label {
   position: absolute;
   left: 14px;
   bottom: 14px;
+  z-index: 3;
   padding: 8px 10px;
   background: rgba(8, 8, 8, 0.78);
   font-size: 0.8rem;
   font-weight: 900;
+  transform: translateY(4px);
+  transition:
+    background 180ms ease,
+    transform 220ms ease;
+}
+
+.gallery-tile:hover .gallery-label {
+  background: rgba(8, 8, 8, 0.9);
+  transform: translateY(0);
 }
 
 .cta-band {
@@ -803,7 +1017,50 @@ select:focus {
   width: min(220px, 100%);
   aspect-ratio: 16 / 10;
   border: 1px solid var(--line);
+  background: #050505;
   object-fit: cover;
+}
+
+html.has-scroll-smooth {
+  overflow: hidden;
+}
+
+html.has-scroll-dragging {
+  user-select: none;
+}
+
+[data-scroll-container] {
+  min-height: 100vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .public-cursor {
+    display: none;
+  }
+
+  .program-card,
+  .achievement-card,
+  .gallery-tile,
+  .media,
+  .gallery-tile img,
+  .gallery-tile video {
+    transform: none !important;
+  }
+}
+
+@media (pointer: coarse) {
+  .public-cursor {
+    display: none;
+  }
 }
 
 .upload-ok {

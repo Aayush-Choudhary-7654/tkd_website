@@ -1,6 +1,6 @@
-import { requireAdminRequest } from "@/lib/auth";
 import { jsonError, jsonOk } from "@/lib/api";
 import { insertDocument, listDocuments } from "@/lib/repository";
+import { requireSecureAdminJsonMutation } from "@/lib/security";
 import { sortScheduleItems } from "@/lib/schedule-order";
 import { defaultSchedule } from "@/lib/seed-data";
 import type { ScheduleItem } from "@/lib/types";
@@ -15,7 +15,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const unauthorized = await requireAdminRequest(request);
+  const unauthorized = await requireSecureAdminJsonMutation(request, "admin-schedule");
   if (unauthorized) return unauthorized;
 
   try {

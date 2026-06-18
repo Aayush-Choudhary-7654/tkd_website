@@ -1,4 +1,5 @@
-import { ObjectId } from "mongodb";
+import { GridFSBucket, ObjectId } from "mongodb";
+import { Readable } from "stream";
 import { getDb } from "@/lib/mongodb";
 
 export async function GET(
@@ -8,31 +9,39 @@ export async function GET(
   const { id } = await params;
 
   if (!ObjectId.isValid(id)) {
-    return Response.json({ error: "Invalid image id." }, { status: 400 });
+    return Response.json({ error: "Invalid upload id." }, { status: 400 });
   }
 
   try {
     const db = await getDb();
-    const image = await db.collection("uploads").findOne({ _id: new ObjectId(id) });
+    const objectId = new ObjectId(id);
+    const file = await db.collection("uploads.files").findOne({ _id: objectId });
 
-    if (!image) {
-      return Response.json({ error: "Image not found." }, { status: 404 });
+    if (!file) {
+      return Response.json({ error: "Upload not found." }, { status: 404 });
     }
 
-    const bytes = image.data?.buffer;
-    if (!bytes) {
-      return Response.json({ error: "Image data is missing." }, { status: 404 });
-    }
+    const bucket = new GridFSBucket(db, { bucketName: "uploads" });
+    const stream = Readable.toWeb(bucket.openDownloadStream(objectId)) as ReadableStream;
+    const contentType =
+      typeof file.contentType === "string"
+        ? file.contentType
+        : typeof file.metadata?.contentType === "string"
+          ? file.metadata.contentType
+          : "application/octet-stream";
 
-    return new Response(bytes, {
+    return new Response(stream, {
       headers: {
         "Cache-Control": "public, max-age=31536000, immutable",
-        "Content-Length": String(image.size || bytes.length),
-        "Content-Type": image.contentType || "application/octet-stream"
+        "Content-Length": String(file.length || ""),
+        "Content-Type": contentType
       }
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return Response.json({ error: `Could not read image from MongoDB. ${message}` }, { status: 503 });
+    return Response.json(
+      { error: `Could not read upload from MongoDB. ${message}` },
+      { status: 503 }
+    );
   }
 }

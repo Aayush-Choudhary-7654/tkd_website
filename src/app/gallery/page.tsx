@@ -1,3 +1,4 @@
+import { MediaRenderer } from "@/components/media-renderer";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
 import { getPublicContent, getSiteContent } from "@/lib/repository";
@@ -29,7 +30,7 @@ export default async function GalleryPage() {
             <div className="gallery-grid">
               {gallery.map((item) => (
                 <figure className="gallery-tile" key={item.id}>
-                  <img src={item.imageUrl} alt="" />
+                  <MediaRenderer src={item.imageUrl} />
                   <figcaption className="gallery-label">{item.category}</figcaption>
                 </figure>
               ))}
@@ -49,7 +50,7 @@ export default async function GalleryPage() {
             <div className="grid grid-3">
               {achievements.map((achievement) => (
                 <article className="achievement-card" key={achievement.id}>
-                  <img className="media" src={achievement.image} alt="" />
+                  <MediaRenderer className="media" src={achievement.image} />
                   <div className="achievement-body">
                     <h3>{achievement.title}</h3>
                     <p>{achievement.description}</p>

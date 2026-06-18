@@ -14,6 +14,7 @@ import type {
   Student
 } from "@/lib/types";
 import { siteContentFields } from "@/lib/site-content";
+import { isVideoSource } from "@/lib/media";
 
 type ContentMap = {
   programs: Program[];
@@ -49,7 +50,7 @@ const configs: Config[] = [
       { name: "ageGroup", label: "Age Group" },
       { name: "schedule", label: "Schedule" },
       { name: "fees", label: "Fees" },
-      { name: "image", label: "Image", type: "image-url", full: true },
+      { name: "image", label: "Media", type: "image-url", full: true },
       { name: "description", label: "Description", type: "textarea", full: true }
     ]
   },
@@ -70,7 +71,7 @@ const configs: Config[] = [
     endpoint: "/api/v1/gallery",
     responseKey: "gallery",
     fields: [
-      { name: "imageUrl", label: "Image", type: "image-url", full: true },
+      { name: "imageUrl", label: "Media", type: "image-url", full: true },
       {
         name: "category",
         label: "Category",
@@ -87,7 +88,7 @@ const configs: Config[] = [
     fields: [
       { name: "title", label: "Title" },
       { name: "date", label: "Date", type: "date" },
-      { name: "image", label: "Image", type: "image-url", full: true },
+      { name: "image", label: "Media", type: "image-url", full: true },
       { name: "description", label: "Description", type: "textarea", full: true }
     ]
   }
@@ -137,8 +138,16 @@ function ImageUploadField({
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState("");
   const [statusKind, setStatusKind] = useState<"error" | "success">("success");
-  const allowedTypes = ["image/gif", "image/jpeg", "image/png", "image/webp"];
-  const maxBytes = 5 * 1024 * 1024;
+  const allowedTypes = [
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "video/mp4",
+    "video/quicktime",
+    "video/webm"
+  ];
+  const maxBytes = 50 * 1024 * 1024;
 
   async function uploadFile(file?: File) {
     if (!file) return;
@@ -147,13 +156,13 @@ function ImageUploadField({
     setStatusKind("success");
 
     if (!allowedTypes.includes(file.type)) {
-      setStatus("Only PNG, JPG, WebP, and GIF images are allowed.");
+      setStatus("Only PNG, JPG, WebP, GIF, MP4, MOV, and WebM files are allowed.");
       setStatusKind("error");
       return;
     }
 
     if (file.size > maxBytes) {
-      setStatus("Image must be 5MB or smaller.");
+      setStatus("File must be 50MB or smaller.");
       setStatusKind("error");
       return;
     }
@@ -177,7 +186,7 @@ function ImageUploadField({
       }
 
       onChange(data.url);
-      setStatus("Uploaded to Cloudinary. Click Create to save this item.");
+      setStatus("Uploaded to MongoDB. Click Create to save this item.");
       setStatusKind("success");
     } catch {
       setStatus("Upload failed. Please try again.");
@@ -196,7 +205,7 @@ function ImageUploadField({
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="Paste image URL or upload a file"
+        placeholder="Paste media URL or upload a photo/video"
         required
       />
       <div
@@ -208,19 +217,23 @@ function ImageUploadField({
         }}
       >
         <Upload size={18} />
-        <span>{uploading ? "Uploading..." : "Drop image here"}</span>
+        <span>{uploading ? "Uploading..." : "Drop photo or video here"}</span>
         <button className="ghost-button" type="button" onClick={() => inputRef.current?.click()}>
           Choose File
         </button>
         <input
           ref={inputRef}
           type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
+          accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/quicktime,video/webm"
           hidden
           onChange={(event) => void uploadFile(event.target.files?.[0])}
         />
       </div>
-      {value ? <img className="image-upload-preview" src={value} alt="" /> : null}
+      {value && isVideoSource(value) ? (
+        <video className="image-upload-preview" src={value} controls muted playsInline />
+      ) : value ? (
+        <img className="image-upload-preview" src={value} alt="" />
+      ) : null}
       {status ? <span className={statusKind === "error" ? "upload-error" : "upload-ok"}>{status}</span> : null}
     </div>
   );

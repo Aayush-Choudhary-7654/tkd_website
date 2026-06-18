@@ -1,5 +1,7 @@
 import { Footer } from "./footer";
 import { Header } from "./header";
+import { PublicAnimations } from "./public-animations";
+import { PublicCursor } from "./public-cursor";
 import { getSiteContent } from "@/lib/repository";
 import type { SiteContent } from "@/lib/types";
 
@@ -14,9 +16,12 @@ export async function PublicShell({
 
   return (
     <div className="page-shell">
+      <PublicCursor />
       <Header site={siteContent} />
-      <main>{children}</main>
-      <Footer site={siteContent} />
+      <PublicAnimations>
+        <main>{children}</main>
+        <Footer site={siteContent} />
+      </PublicAnimations>
     </div>
   );
 }
