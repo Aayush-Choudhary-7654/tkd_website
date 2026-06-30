@@ -34,6 +34,21 @@ export const studentSchema = z.object({
   program: z.string().trim().min(2, "Program is required.").max(120)
 });
 
+export const studentLoginSchema = z.object({
+  email: z.string().trim().email("Valid email is required.").max(120),
+  phone: z.string().trim().min(7, "Phone number is required.").max(24)
+});
+
+export const studentAdminUpdateSchema = z.object({
+  profilePhotoUrl: imageSourceSchema.optional().or(z.literal(""))
+});
+
+export const studentFeePaymentSchema = z.object({
+  method: z.enum(["UPI", "Card", "Net Banking", "Cash"]),
+  amount: z.string().trim().max(40).optional().default(""),
+  note: z.string().trim().max(300).optional().default("")
+});
+
 export const contactSchema = z.object({
   name: z.string().trim().min(2, "Name is required.").max(80),
   phone: z.string().trim().min(7, "Phone number is required.").max(24),

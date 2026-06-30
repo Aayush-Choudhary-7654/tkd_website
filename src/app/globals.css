@@ -26,6 +26,18 @@ html {
   scroll-behavior: smooth;
 }
 
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -156,6 +168,7 @@ video {
 
 .public-scroll {
   min-height: 100vh;
+  display: flow-root;
 }
 
 .public-cursor {
@@ -904,6 +917,103 @@ select:focus {
   margin-top: 4px;
 }
 
+.student-dashboard {
+  display: grid;
+  gap: 24px;
+}
+
+.student-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.student-welcome h1 {
+  margin: 0;
+  font-family: Oswald, Impact, sans-serif;
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  line-height: 1;
+}
+
+.student-welcome p:last-child {
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+
+.student-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 24px;
+}
+
+.student-panel {
+  align-content: start;
+}
+
+.student-panel-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.student-panel-heading svg {
+  color: var(--gold);
+  flex: 0 0 auto;
+}
+
+.student-panel h2,
+.student-payment-history h3 {
+  margin: 0;
+}
+
+.student-panel p,
+.student-payment-history small {
+  color: var(--muted);
+}
+
+.student-photo-preview,
+.student-photo-empty {
+  width: min(360px, 100%);
+  aspect-ratio: 1 / 1;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  background: #050505;
+}
+
+.student-photo-preview {
+  object-fit: cover;
+}
+
+.student-photo-empty {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  text-align: center;
+}
+
+.student-payment-history {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.student-payment-history h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+}
+
+.payment-history-row {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  background: #101010;
+  padding: 12px;
+}
+
 .contact-list {
   display: grid;
   gap: 16px;
@@ -937,7 +1047,7 @@ select:focus {
 .site-footer {
   border-top: 1px solid var(--line);
   background: #050505;
-  padding: 36px 0;
+  padding: 36px 0 18px;
   color: var(--muted);
 }
 
@@ -950,6 +1060,16 @@ select:focus {
 .footer-links {
   display: grid;
   gap: 10px;
+}
+
+.footer-copyright {
+  max-width: var(--container);
+  margin: 24px auto 0;
+  padding: 14px 20px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .whatsapp-float {
@@ -1146,16 +1266,22 @@ select:focus {
   object-fit: cover;
 }
 
-html.has-scroll-smooth {
-  overflow: hidden;
+.student-photo-admin {
+  display: grid;
+  min-width: min(300px, 68vw);
+  gap: 10px;
 }
 
-html.has-scroll-dragging {
-  user-select: none;
+.student-photo-admin .drop-zone {
+  min-height: 92px;
 }
 
-[data-scroll-container] {
-  min-height: 100vh;
+.student-photo-thumb {
+  width: 76px;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--line);
+  background: #050505;
+  object-fit: cover;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1321,6 +1447,14 @@ html.has-scroll-dragging {
   .hero-actions .button,
   .hero-actions .ghost-button {
     width: 100%;
+  }
+
+  .student-welcome {
+    display: grid;
+  }
+
+  .student-dashboard-grid {
+    grid-template-columns: 1fr;
   }
 
   .stat-strip,

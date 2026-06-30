@@ -9,6 +9,19 @@ export type Student = {
   parentName?: string;
   level: ExperienceLevel;
   program: string;
+  profilePhotoUrl?: string;
+  photoUpdatedAt?: string;
+  createdAt: string;
+};
+
+export type StudentFeePayment = {
+  id: string;
+  studentId: string;
+  studentName: string;
+  method: "UPI" | "Card" | "Net Banking" | "Cash";
+  amount?: string;
+  note?: string;
+  status: "pending_configuration";
   createdAt: string;
 };
 

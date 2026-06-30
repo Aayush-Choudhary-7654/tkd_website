@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import type LocomotiveScroll from "locomotive-scroll";
+import Lenis from "lenis";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -20,7 +20,7 @@ function getHashTarget(hash: string) {
 export function PublicAnimations({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<LocomotiveScroll | null>(null);
+  const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -28,49 +28,35 @@ export function PublicAnimations({ children }: { children: React.ReactNode }) {
 
     const root = container;
     const reducedMotion = prefersReducedMotion();
-    const desktopViewport = window.matchMedia("(min-width: 768px)").matches;
     const finePointer = window.matchMedia("(pointer: fine)").matches;
     let animationContext: gsap.Context | undefined;
     let killed = false;
     const cleanupFns: Array<() => void> = [];
-    const onRefresh = () => scrollRef.current?.update();
+    let rafId = 0;
+
+    if (!reducedMotion && finePointer) {
+      const lenis = new Lenis({
+        duration: 1.08,
+        easing: (value) => 1 - Math.pow(1 - value, 4),
+        smoothWheel: true,
+        syncTouch: false,
+        wheelMultiplier: 0.88,
+        touchMultiplier: 1.05
+      });
+
+      lenisRef.current = lenis;
+      lenis.on("scroll", ScrollTrigger.update);
+
+      const raf = (time: number) => {
+        lenis.raf(time);
+        rafId = window.requestAnimationFrame(raf);
+      };
+
+      rafId = window.requestAnimationFrame(raf);
+    }
 
     async function setup() {
-      if (!reducedMotion && desktopViewport) {
-        const LocomotiveScroll = (await import("locomotive-scroll")).default;
-        if (killed || !containerRef.current) return;
-
-        const locoScroll = new LocomotiveScroll({
-          el: containerRef.current,
-          smooth: true,
-          lerp: 0.08,
-          multiplier: 0.9,
-          tablet: { smooth: false },
-          smartphone: { smooth: false }
-        });
-
-        scrollRef.current = locoScroll;
-        locoScroll.on("scroll", ScrollTrigger.update);
-
-        ScrollTrigger.scrollerProxy(containerRef.current, {
-          scrollTop(value?: number) {
-            if (typeof value === "number") {
-              locoScroll.scrollTo(value, { duration: 0, disableLerp: true });
-            }
-
-            return locoScroll.scroll?.instance?.scroll?.y || 0;
-          },
-          getBoundingClientRect() {
-            return {
-              top: 0,
-              left: 0,
-              width: window.innerWidth,
-              height: window.innerHeight
-            };
-          },
-          pinType: containerRef.current?.style.transform ? "transform" : "fixed"
-        });
-      }
+      if (killed) return;
 
       if (reducedMotion) {
         gsap.set(root.querySelectorAll("[data-animate]"), {
@@ -103,7 +89,6 @@ export function PublicAnimations({ children }: { children: React.ReactNode }) {
               ease: "power3.out",
               scrollTrigger: {
                 trigger: item,
-                scroller: scrollRef.current ? root : undefined,
                 start: "top 86%",
                 once: true
               }
@@ -117,13 +102,11 @@ export function PublicAnimations({ children }: { children: React.ReactNode }) {
           for (const media of mediaItems) {
             gsap.from(media, {
               autoAlpha: 0,
-              clipPath: "inset(14% 14% 14% 14%)",
               scale: 1.12,
               duration: 1,
               ease: "power3.out",
               scrollTrigger: {
                 trigger: media,
-                scroller: scrollRef.current ? root : undefined,
                 start: "top 88%",
                 once: true
               }
@@ -185,18 +168,20 @@ export function PublicAnimations({ children }: { children: React.ReactNode }) {
         }, root);
       }
 
-      ScrollTrigger.addEventListener("refresh", onRefresh);
       ScrollTrigger.refresh();
 
       const updateTimer = window.setTimeout(() => {
-        scrollRef.current?.update();
         ScrollTrigger.refresh();
       }, 350);
 
       const hashTimer = window.setTimeout(() => {
         const target = getHashTarget(window.location.hash);
         if (!target) return;
-        scrollRef.current?.scrollTo(target, { offset: -90, duration: 600 });
+        if (lenisRef.current) {
+          lenisRef.current.scrollTo(target, { offset: -82, duration: 1.08 });
+        } else {
+          target.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
+        }
       }, 450);
 
       return () => {
@@ -225,9 +210,8 @@ export function PublicAnimations({ children }: { children: React.ReactNode }) {
 
       event.preventDefault();
       window.history.pushState(null, "", url.hash);
-
-      if (scrollRef.current) {
-        scrollRef.current.scrollTo(element, { offset: -90, duration: 700 });
+      if (lenisRef.current) {
+        lenisRef.current.scrollTo(element, { offset: -82, duration: 1.08 });
       } else {
         element.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
       }
@@ -238,19 +222,21 @@ export function PublicAnimations({ children }: { children: React.ReactNode }) {
     return () => {
       killed = true;
       document.removeEventListener("click", onAnchorClick);
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
       cleanupFns.forEach((cleanup) => cleanup());
       cleanupTimers?.();
       animationContext?.revert();
-      ScrollTrigger.removeEventListener("refresh", onRefresh);
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
       ScrollTrigger.clearScrollMemory();
-      scrollRef.current?.destroy();
-      scrollRef.current = null;
+      lenisRef.current?.destroy();
+      lenisRef.current = null;
     };
   }, [pathname]);
 
   return (
-    <div className="public-scroll" data-scroll-container ref={containerRef}>
+    <div className="public-scroll" ref={containerRef}>
       {children}
     </div>
   );

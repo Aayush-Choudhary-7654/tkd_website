@@ -14,6 +14,7 @@ import { sortScheduleItems } from "./schedule-order";
 import type {
   Achievement,
   ContactInquiry,
+  StudentFeePayment,
   GalleryItem,
   Program,
   PublicContent,
@@ -29,7 +30,8 @@ export type CollectionName =
   | "schedule"
   | "gallery"
   | "achievements"
-  | "siteContent";
+  | "siteContent"
+  | "studentFeePayments";
 
 const fallbackContent = {
   programs: defaultPrograms,
@@ -337,6 +339,53 @@ export async function saveSiteContent(payload: SiteContent): Promise<SiteContent
 
 export async function getStudents() {
   return listDocuments<Student>("students", { sort: { createdAt: -1 } });
+}
+
+function normalizePhone(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+export async function getStudentByLogin(email: string, phone: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedPhone = normalizePhone(phone);
+  const students = await getStudents();
+
+  return (
+    students.find(
+      (student) =>
+        student.email?.trim().toLowerCase() === normalizedEmail &&
+        normalizePhone(student.phone) === normalizedPhone
+    ) || null
+  );
+}
+
+export async function getStudentById(id: string) {
+  const students = await getStudents();
+  return students.find((student) => student.id === id) || null;
+}
+
+export async function updateStudentProfilePhoto(id: string, profilePhotoUrl: string) {
+  return updateDocument("students", id, {
+    profilePhotoUrl,
+    photoUpdatedAt: new Date().toISOString()
+  }) as Promise<Student | null>;
+}
+
+export async function createStudentFeePayment(
+  payload: Omit<StudentFeePayment, "id" | "createdAt" | "status">
+) {
+  return insertDocument("studentFeePayments", {
+    ...payload,
+    status: "pending_configuration",
+    createdAt: new Date()
+  }) as Promise<StudentFeePayment>;
+}
+
+export async function getStudentFeePayments(studentId: string) {
+  const payments = await listDocuments<StudentFeePayment>("studentFeePayments", {
+    sort: { createdAt: -1 }
+  });
+  return payments.filter((payment) => payment.studentId === studentId);
 }
 
 export async function getContacts() {

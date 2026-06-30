@@ -48,6 +48,9 @@ export function Footer({ site }: { site: SiteContent }) {
             </Link>
           </div>
         </div>
+        <p className="footer-copyright">
+          &copy; {new Date().getFullYear()} Active Taekwondo Academy. All rights reserved. <br /> Developed by Aayush Choudhary
+        </p>
       </footer>
     </>
   );

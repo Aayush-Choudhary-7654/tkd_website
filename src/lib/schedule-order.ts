@@ -6,7 +6,9 @@ const weekdayOrder = new Map(
   )
 );
 
-function dayRank(day: string) {
+function dayRank(day: string | null | undefined) {
+  if (typeof day !== "string") return weekdayOrder.size;
+
   const normalized = day.trim().toLowerCase();
   const exact = weekdayOrder.get(normalized);
   if (exact !== undefined) return exact;
@@ -17,7 +19,9 @@ function dayRank(day: string) {
   return matchedDay ? weekdayOrder.get(matchedDay) ?? weekdayOrder.size : weekdayOrder.size;
 }
 
-function startMinutes(time: string) {
+function startMinutes(time: string | null | undefined) {
+  if (typeof time !== "string") return Number.MAX_SAFE_INTEGER;
+
   const match = time.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
   if (!match) return Number.MAX_SAFE_INTEGER;
 
@@ -39,6 +43,7 @@ export function sortScheduleItems<T extends Pick<ScheduleItem, "day" | "time">>(
     const timeDifference = startMinutes(left.time) - startMinutes(right.time);
     if (timeDifference) return timeDifference;
 
-    return left.day.localeCompare(right.day) || left.time.localeCompare(right.time);
+    return String(left.day || "").localeCompare(String(right.day || "")) ||
+      String(left.time || "").localeCompare(String(right.time || ""));
   });
 }

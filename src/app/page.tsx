@@ -7,21 +7,16 @@ import {
   Sparkles,
   Trophy
 } from "lucide-react";
-import { ContactForm } from "@/components/forms";
-import { MediaRenderer } from "@/components/media-renderer";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
-import { getPublicContent, getSiteContent } from "@/lib/repository";
+import { getSiteContent } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
 
 const featureIcons = [ShieldCheck, Dumbbell, Trophy, Sparkles];
 
 export default async function HomePage() {
-  const [site, { programs, schedule, gallery, achievements }] = await Promise.all([
-    getSiteContent(),
-    getPublicContent()
-  ]);
+  const site = await getSiteContent();
 
   const features = [
     { title: site.featureOneTitle, text: site.featureOneText },
@@ -87,99 +82,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="section alt">
-        <div className="container">
-          <SectionHeading eyebrow={site.homeProgramsEyebrow} title={site.homeProgramsTitle}>
-            {site.homeProgramsBody}
-          </SectionHeading>
-          {programs.length ? (
-            <div className="grid grid-4">
-              {programs.slice(0, 4).map((program) => (
-                <article className="program-card" key={program.id}>
-                  <MediaRenderer className="media" src={program.image} />
-                  <div className="program-body">
-                    <h3>{program.name}</h3>
-                    <p>{program.description}</p>
-                    <div className="meta-list">
-                      <span className="pill">{program.ageGroup}</span>
-                      <span className="pill">{program.schedule}</span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">Programs will appear here after admin setup.</div>
-          )}
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container">
-          <SectionHeading eyebrow={site.homeScheduleEyebrow} title={site.homeScheduleTitle}>
-            {site.homeScheduleBody}
-          </SectionHeading>
-          <div className="schedule-table">
-            {schedule.map((item) => (
-              <div className="schedule-row" key={item.id}>
-                <strong>{item.day}</strong>
-                <span>{item.time}</span>
-                <span>{item.program}</span>
-              </div>
-            ))}
-            {!schedule.length ? (
-              <div className="empty-state">Schedule rows will appear here after admin setup.</div>
-            ) : null}
-          </div>
-        </div>
-      </section>
-
-      <section className="section alt">
-        <div className="container">
-          <SectionHeading
-            eyebrow={site.homeAchievementsEyebrow}
-            title={site.homeAchievementsTitle}
-          >
-            {site.homeAchievementsBody}
-          </SectionHeading>
-          {achievements.length ? (
-            <div className="grid grid-3">
-              {achievements.slice(0, 3).map((achievement) => (
-                <article className="achievement-card" key={achievement.id}>
-                  <MediaRenderer className="media" src={achievement.image} />
-                  <div className="achievement-body">
-                    <h3>{achievement.title}</h3>
-                    <p>{achievement.description}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">Achievements will appear here after admin setup.</div>
-          )}
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container">
-          <SectionHeading eyebrow={site.homeGalleryEyebrow} title={site.homeGalleryTitle}>
-            {site.homeGalleryBody}
-          </SectionHeading>
-          {gallery.length ? (
-            <div className="gallery-grid">
-              {gallery.slice(0, 5).map((item) => (
-                <figure className="gallery-tile" key={item.id}>
-                  <MediaRenderer src={item.imageUrl} />
-                  <figcaption className="gallery-label">{item.category}</figcaption>
-                </figure>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">Gallery images will appear here after admin setup.</div>
-          )}
-        </div>
-      </section>
-
       <section className="cta-band">
         <div className="container">
           <p className="eyebrow">
@@ -195,17 +97,6 @@ export default async function HomePage() {
               {site.secondaryCtaLabel}
             </Link>
           </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container grid grid-2">
-          <div>
-            <SectionHeading eyebrow={site.homeTrialEyebrow} title={site.homeTrialTitle}>
-              {site.homeTrialBody}
-            </SectionHeading>
-          </div>
-          <ContactForm compact submitLabel={site.trialSubmitLabel} />
         </div>
       </section>
     </PublicShell>

@@ -129,10 +129,12 @@ function emptyForm(fields: Field[]) {
 
 function ImageUploadField({
   value,
-  onChange
+  onChange,
+  successMessage = "Uploaded to MongoDB. Click Create to save this item."
 }: {
   value: string;
   onChange: (value: string) => void;
+  successMessage?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -186,7 +188,7 @@ function ImageUploadField({
       }
 
       onChange(data.url);
-      setStatus("Uploaded to MongoDB. Click Create to save this item.");
+      setStatus(successMessage);
       setStatusKind("success");
     } catch {
       setStatus("Upload failed. Please try again.");
@@ -239,12 +241,63 @@ function ImageUploadField({
   );
 }
 
+function StudentPhotoControl({
+  student,
+  onSaved
+}: {
+  student: Student;
+  onSaved: (student: Student) => void;
+}) {
+  const [photoUrl, setPhotoUrl] = useState(student.profilePhotoUrl || "");
+  const [status, setStatus] = useState("");
+  const [pending, setPending] = useState(false);
+
+  async function savePhoto() {
+    setPending(true);
+    setStatus("");
+
+    const response = await fetch(`/api/v1/students/${student.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profilePhotoUrl: photoUrl })
+    });
+
+    setPending(false);
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setStatus(data?.error || "Photo update failed.");
+      return;
+    }
+
+    onSaved(data.student);
+    setStatus("Photo updated.");
+  }
+
+  return (
+    <div className="student-photo-admin">
+      {photoUrl ? <img className="student-photo-thumb" src={photoUrl} alt="" /> : null}
+      <ImageUploadField
+        value={photoUrl}
+        onChange={setPhotoUrl}
+        successMessage="Uploaded. Click Save Photo to update this student."
+      />
+      <button className="ghost-button" type="button" onClick={savePhoto} disabled={pending}>
+        {pending ? "Saving..." : "Save Photo"}
+      </button>
+      {status ? <span className={status.includes("failed") ? "upload-error" : "upload-ok"}>{status}</span> : null}
+    </div>
+  );
+}
+
 function LeadTables({
   students,
-  contacts
+  contacts,
+  onStudentChange
 }: {
   students: Student[];
   contacts: ContactInquiry[];
+  onStudentChange: (student: Student) => void;
 }) {
   return (
     <div className="admin-grid">
@@ -261,6 +314,7 @@ function LeadTables({
                 <th>Parent</th>
                 <th>Level</th>
                 <th>Program</th>
+                <th>Photo</th>
                 <th>Date</th>
               </tr>
             </thead>
@@ -274,6 +328,9 @@ function LeadTables({
                   <td>{student.parentName || "-"}</td>
                   <td>{student.level}</td>
                   <td>{student.program}</td>
+                  <td>
+                    <StudentPhotoControl student={student} onSaved={onStudentChange} />
+                  </td>
                   <td>{new Date(student.createdAt).toLocaleDateString("en-IN")}</td>
                 </tr>
               ))}
@@ -646,14 +703,15 @@ export function AdminDashboard({
   const router = useRouter();
   const [contentState, setContentState] = useState<ContentMap>(content);
   const [siteContentState, setSiteContentState] = useState<SiteContent>(siteContent);
+  const [studentState, setStudentState] = useState<Student[]>(students);
   const counts = useMemo(
     () => [
-      ["Students", students.length],
+      ["Students", studentState.length],
       ["Inquiries", contacts.length],
       ["Programs", contentState.programs.length],
       ["Gallery", contentState.gallery.length]
     ],
-    [students.length, contacts.length, contentState.programs.length, contentState.gallery.length]
+    [studentState.length, contacts.length, contentState.programs.length, contentState.gallery.length]
   );
 
   async function logout() {
@@ -693,7 +751,15 @@ export function AdminDashboard({
           ))}
         </div>
 
-        <LeadTables students={students} contacts={contacts} />
+        <LeadTables
+          students={studentState}
+          contacts={contacts}
+          onStudentChange={(student) =>
+            setStudentState((value) =>
+              value.map((item) => (item.id === student.id ? student : item))
+            )
+          }
+        />
 
         <div className="section-heading" style={{ marginTop: 34 }}>
           <div>
