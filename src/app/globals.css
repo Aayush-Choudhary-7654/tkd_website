@@ -236,10 +236,18 @@ video {
   width: 42px;
   height: 42px;
   place-items: center;
-  /* border: 2px solid var(--primary); */
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
   background: #151515;
-  /* color: var(--primary); */
+  box-shadow: 0 12px 28px rgba(215, 25, 32, 0.18);
   font-weight: 900;
+}
+
+.brand-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .nav-links {
