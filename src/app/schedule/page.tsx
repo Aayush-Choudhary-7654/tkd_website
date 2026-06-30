@@ -15,6 +15,14 @@ export default async function SchedulePage() {
           <p className="eyebrow">{site.scheduleHeroEyebrow}</p>
           <h1>{site.scheduleHeroTitle}</h1>
           <p>{site.scheduleHeroBody}</p>
+          <div className="hero-actions">
+            <Link className="button" href="/contact#free-trial">
+              {site.secondaryCtaLabel}
+            </Link>
+            <Link className="ghost-button" href="/join">
+              {site.primaryCtaLabel}
+            </Link>
+          </div>
         </div>
       </section>
 

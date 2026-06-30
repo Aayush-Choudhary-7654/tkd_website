@@ -1,4 +1,5 @@
 import { requireAdminRequest } from "@/lib/auth";
+import { getEmailNotificationStatus } from "@/lib/email";
 import { getDb, hasMongoConfig } from "@/lib/mongodb";
 import { getWhatsAppNotificationStatus } from "@/lib/whatsapp";
 
@@ -23,6 +24,7 @@ export async function GET(request: Request) {
   const health = {
     ok: false,
     env,
+    email: getEmailNotificationStatus(),
     whatsapp: getWhatsAppNotificationStatus(),
     mongo: {
       configured: hasMongoConfig(),

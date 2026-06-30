@@ -257,6 +257,7 @@ function LeadTables({
                 <th>Name</th>
                 <th>Age</th>
                 <th>Phone</th>
+                <th>Email</th>
                 <th>Parent</th>
                 <th>Level</th>
                 <th>Program</th>
@@ -269,6 +270,7 @@ function LeadTables({
                   <td>{student.name}</td>
                   <td>{student.age}</td>
                   <td>{student.phone}</td>
+                  <td>{student.email || "-"}</td>
                   <td>{student.parentName || "-"}</td>
                   <td>{student.level}</td>
                   <td>{student.program}</td>
@@ -290,6 +292,7 @@ function LeadTables({
               <tr>
                 <th>Name</th>
                 <th>Phone</th>
+                <th>Email</th>
                 <th>Message</th>
                 <th>Date</th>
               </tr>
@@ -299,6 +302,7 @@ function LeadTables({
                 <tr key={contact.id}>
                   <td>{contact.name}</td>
                   <td>{contact.phone}</td>
+                  <td>{contact.email || "-"}</td>
                   <td>{contact.message}</td>
                   <td>{new Date(contact.createdAt).toLocaleDateString("en-IN")}</td>
                 </tr>

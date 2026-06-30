@@ -28,6 +28,7 @@ export const studentSchema = z.object({
   name: z.string().trim().min(2, "Full name is required.").max(80),
   age: z.coerce.number().int().min(3).max(80),
   phone: z.string().trim().min(7, "Phone number is required.").max(24),
+  email: z.string().trim().email("Valid email is required.").max(120),
   parentName: z.string().trim().max(80).optional().default(""),
   level: z.enum(["Beginner", "Intermediate", "Advanced"]),
   program: z.string().trim().min(2, "Program is required.").max(120)
@@ -36,6 +37,7 @@ export const studentSchema = z.object({
 export const contactSchema = z.object({
   name: z.string().trim().min(2, "Name is required.").max(80),
   phone: z.string().trim().min(7, "Phone number is required.").max(24),
+  email: z.string().trim().email("Valid email is required.").max(120),
   message: z.string().trim().min(5, "Message is required.").max(1000)
 });
 

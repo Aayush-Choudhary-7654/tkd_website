@@ -24,9 +24,9 @@ export const defaultSiteContent: SiteContent = {
     "Taekwondo training for discipline, strength, respect, fitness, and competition readiness.",
   navJoinLabel: "Join Now",
   homeHeroEyebrow: "Active Taekwondo Academy",
-  homeHeroTitle: "Train Like a Champion",
+  homeHeroTitle: "Build Confidence Through Taekwondo",
   homeHeroBody:
-    "Build discipline, strength, focus, and respect through modern Taekwondo training for kids, beginners, advanced students, and competitors.",
+    "Kids, beginners, and competitors build discipline, strength, focus, and respect through structured coaching. Book a free trial and choose the right class with the academy team.",
   primaryCtaLabel: "Join Now",
   secondaryCtaLabel: "Book Free Trial",
   studentSubmitLabel: "Submit Registration",
@@ -39,9 +39,9 @@ export const defaultSiteContent: SiteContent = {
   statThreeValue: "100%",
   statThreeLabel: "Discipline-led coaching",
   homeWhyEyebrow: "Why Choose Us",
-  homeWhyTitle: "Train with purpose",
+  homeWhyTitle: "Clear training. Real progress.",
   homeWhyBody:
-    "Students learn more than kicks. Every class reinforces focus, confidence, athletic ability, and respect.",
+    "Every class gives students a clear path: warm-up, technique, discipline, fitness, confidence, and measurable improvement.",
   homeProgramsEyebrow: "Programs",
   homeProgramsTitle: "Choose your path",
   homeProgramsBody:
@@ -59,13 +59,13 @@ export const defaultSiteContent: SiteContent = {
   homeGalleryBody:
     "A look at training energy, events, and competition preparation.",
   homeCtaEyebrow: "Start Today",
-  homeCtaTitle: "Start Your Taekwondo Journey Today",
+  homeCtaTitle: "Ready to try your first class?",
   homeCtaBody:
-    "Register for a program or book a free trial class and let the academy team guide the next step.",
+    "Register for training or book a free trial class. The academy team will confirm the best timing, level, and program for you.",
   homeTrialEyebrow: "Free Trial",
-  homeTrialTitle: "Visit the mat",
+  homeTrialTitle: "Book your free trial",
   homeTrialBody:
-    "Share your details and the team will help you choose the right class.",
+    "Share your details and the team will call you back with the right class time and next step.",
   featureOneTitle: "Certified Coaches",
   featureOneText:
     "Structured classes led with safety, discipline, and student progression in mind.",
@@ -109,7 +109,7 @@ export const defaultSiteContent: SiteContent = {
   programsHeroBody:
     "Choose the right path for your age, ability, and goals. The academy can recommend a class after your first conversation or trial.",
   programsSectionTitle: "Available programs",
-  programsSectionBody: "All program details are managed from the admin dashboard.",
+  programsSectionBody: "Compare age group, timing, and training focus, then book a trial or register for the best fit.",
   scheduleHeroEyebrow: "Schedule",
   scheduleHeroTitle: "Find your class time",
   scheduleHeroBody:
@@ -131,14 +131,14 @@ export const defaultSiteContent: SiteContent = {
   contactHeroBody:
     "Ask a question, schedule a free trial, or confirm the best program before joining.",
   contactSectionTitle: "Send an inquiry",
-  contactSectionBody: "Share your details and the academy team will follow up.",
+  contactSectionBody: "Share your details and the academy team will call you back with class timing and trial options.",
   contactMapTitle: "Location",
   joinHeroEyebrow: "Join Now",
   joinHeroTitle: "Register for training",
   joinHeroBody:
     "Submit student details and the academy team will contact you to confirm class timing, program fit, and next steps.",
   joinSectionTitle: "Student registration",
-  joinSectionBody: "This creates a real student lead in the backend for the admin team.",
+  joinSectionBody: "Submit the student details and the academy team will confirm class timing, program fit, and next steps.",
   joinInfoTitle: "Before your first class",
   joinInfoBody:
     "Wear comfortable sports clothing, carry water, and arrive a little early so the coach can understand your level."
@@ -249,5 +249,13 @@ export const siteContentFields: SiteContentField[] = [
 ];
 
 export function mergeSiteContent(content: Partial<SiteContent> = {}): SiteContent {
-  return { ...defaultSiteContent, ...content, key: "main" };
+  const cleaned = Object.entries(content).reduce<Partial<SiteContent>>((next, [key, value]) => {
+    if (typeof value === "string" && value.trim() === "") {
+      return next;
+    }
+
+    return { ...next, [key]: value };
+  }, {});
+
+  return { ...defaultSiteContent, ...cleaned, key: "main" };
 }

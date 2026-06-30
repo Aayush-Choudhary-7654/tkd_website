@@ -2,6 +2,7 @@ type LeadNotification = {
   type: "New inquiry" | "New student booking";
   name: string;
   phone: string;
+  email?: string;
   message?: string;
   program?: string;
   level?: string;
@@ -49,6 +50,10 @@ function buildNotificationText(lead: LeadNotification) {
 
   if (typeof lead.age === "number") {
     lines.push(`Age: ${lead.age}`);
+  }
+
+  if (lead.email) {
+    lines.push(`Email: ${lead.email}`);
   }
 
   if (lead.program) {

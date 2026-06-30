@@ -84,7 +84,6 @@ export function PublicAnimations({ children }: { children: React.ReactNode }) {
           );
 
           gsap.from(heroItems, {
-            autoAlpha: 0,
             y: 34,
             duration: 0.8,
             ease: "power3.out",

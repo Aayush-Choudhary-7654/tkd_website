@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Award, HeartHandshake, Shield, Target } from "lucide-react";
 import { MediaRenderer } from "@/components/media-renderer";
 import { PublicShell } from "@/components/public-shell";
@@ -24,6 +25,14 @@ export default async function AboutPage() {
           <p className="eyebrow">{site.aboutHeroEyebrow}</p>
           <h1>{site.aboutHeroTitle}</h1>
           <p>{site.aboutHeroBody}</p>
+          <div className="hero-actions">
+            <Link className="button" href="/join">
+              {site.primaryCtaLabel}
+            </Link>
+            <Link className="ghost-button" href="/contact#free-trial">
+              {site.secondaryCtaLabel}
+            </Link>
+          </div>
         </div>
       </section>
 

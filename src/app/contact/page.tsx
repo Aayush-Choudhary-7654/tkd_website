@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MapPin, MessageCircle, Phone } from "lucide-react";
 import { ContactForm } from "@/components/forms";
 import { PublicShell } from "@/components/public-shell";
@@ -18,6 +19,14 @@ export default async function ContactPage() {
           <p className="eyebrow">{site.contactHeroEyebrow}</p>
           <h1>{site.contactHeroTitle}</h1>
           <p>{site.contactHeroBody}</p>
+          <div className="hero-actions">
+            <Link className="button" href="#free-trial">
+              {site.contactSubmitLabel}
+            </Link>
+            <a className="ghost-button" href={`tel:${site.phone}`}>
+              {site.phone}
+            </a>
+          </div>
         </div>
       </section>
 

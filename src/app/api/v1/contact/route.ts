@@ -1,5 +1,6 @@
 import { requireAdminRequest } from "@/lib/auth";
 import { jsonError, jsonOk } from "@/lib/api";
+import { sendEmailLeadNotification } from "@/lib/email";
 import { getContacts, insertDocument } from "@/lib/repository";
 import { rateLimit, requireJsonRequest, requireSameOrigin } from "@/lib/security";
 import { contactSchema, readJson } from "@/lib/validation";
@@ -32,12 +33,23 @@ export async function POST(request: Request) {
       ...payload,
       createdAt: new Date()
     });
-    await sendWhatsAppLeadNotification({
-      type: "New inquiry",
-      name: payload.name,
-      phone: payload.phone,
-      message: payload.message
-    });
+    const emailType = /trial/i.test(payload.message) ? "New free trial" : "New inquiry";
+    await Promise.all([
+      sendWhatsAppLeadNotification({
+        type: "New inquiry",
+        name: payload.name,
+        phone: payload.phone,
+        email: payload.email,
+        message: payload.message
+      }),
+      sendEmailLeadNotification({
+        type: emailType,
+        name: payload.name,
+        phone: payload.phone,
+        email: payload.email,
+        message: payload.message
+      })
+    ]);
     return jsonOk({ contact }, { status: 201 });
   } catch (error) {
     return jsonError(error, "Could not submit inquiry.");

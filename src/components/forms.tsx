@@ -35,6 +35,7 @@ export function StudentRegistrationForm({
     name: "",
     age: "",
     phone: "",
+    email: "",
     parentName: "",
     level: "Beginner",
     program: defaultProgram
@@ -51,6 +52,7 @@ export function StudentRegistrationForm({
         name: "",
         age: "",
         phone: "",
+        email: "",
         parentName: "",
         level: "Beginner",
         program: defaultProgram
@@ -107,6 +109,19 @@ export function StudentRegistrationForm({
           />
         </label>
         <label>
+          Email
+          <input
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={form.email}
+            onChange={(event) => setForm((value) => ({ ...value, email: event.target.value }))}
+            required
+          />
+        </label>
+      </div>
+      <div className="form-grid two">
+        <label>
           Parent Name
           <input
             name="parentName"
@@ -117,8 +132,6 @@ export function StudentRegistrationForm({
             }
           />
         </label>
-      </div>
-      <div className="form-grid two">
         <label>
           Experience Level
           <select
@@ -169,6 +182,7 @@ export function ContactForm({
   const [form, setForm] = useState({
     name: "",
     phone: "",
+    email: "",
     message: defaultMessage
   });
 
@@ -182,6 +196,7 @@ export function ContactForm({
       setForm({
         name: "",
         phone: "",
+        email: "",
         message: defaultMessage
       });
       setStatus({
@@ -218,6 +233,17 @@ export function ContactForm({
             autoComplete="tel"
             value={form.phone}
             onChange={(event) => setForm((value) => ({ ...value, phone: event.target.value }))}
+            required
+          />
+        </label>
+        <label>
+          Email
+          <input
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={form.email}
+            onChange={(event) => setForm((value) => ({ ...value, email: event.target.value }))}
             required
           />
         </label>

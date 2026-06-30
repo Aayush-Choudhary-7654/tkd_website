@@ -15,16 +15,21 @@ export default async function JoinPage() {
           <p className="eyebrow">{site.joinHeroEyebrow}</p>
           <h1>{site.joinHeroTitle}</h1>
           <p>{site.joinHeroBody}</p>
+          <div className="hero-actions">
+            <a className="button" href="#registration">
+              {site.studentSubmitLabel}
+            </a>
+          </div>
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" id="registration">
         <div className="container grid grid-2">
           <div>
             <SectionHeading title={site.joinSectionTitle}>
               {site.joinSectionBody}
             </SectionHeading>
-            <div className="page-card" style={{ padding: 24 }}>
+            <div className="page-card">
               <h3>{site.joinInfoTitle}</h3>
               <p>{site.joinInfoBody}</p>
             </div>

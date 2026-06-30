@@ -5,6 +5,7 @@ export type Student = {
   name: string;
   age: number;
   phone: string;
+  email?: string;
   parentName?: string;
   level: ExperienceLevel;
   program: string;
@@ -15,6 +16,7 @@ export type ContactInquiry = {
   id: string;
   name: string;
   phone: string;
+  email?: string;
   message: string;
   createdAt: string;
 };

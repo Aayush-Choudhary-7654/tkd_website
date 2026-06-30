@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MediaRenderer } from "@/components/media-renderer";
 import { PublicShell } from "@/components/public-shell";
 import { SectionHeading } from "@/components/section-heading";
@@ -18,6 +19,14 @@ export default async function GalleryPage() {
           <p className="eyebrow">{site.galleryHeroEyebrow}</p>
           <h1>{site.galleryHeroTitle}</h1>
           <p>{site.galleryHeroBody}</p>
+          <div className="hero-actions">
+            <Link className="button" href="/join">
+              {site.primaryCtaLabel}
+            </Link>
+            <Link className="ghost-button" href="/contact#free-trial">
+              {site.secondaryCtaLabel}
+            </Link>
+          </div>
         </div>
       </section>
 

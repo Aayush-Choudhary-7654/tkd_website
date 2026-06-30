@@ -16,6 +16,14 @@ export default async function ProgramsPage() {
           <p className="eyebrow">{site.programsHeroEyebrow}</p>
           <h1>{site.programsHeroTitle}</h1>
           <p>{site.programsHeroBody}</p>
+          <div className="hero-actions">
+            <Link className="button" href="/join">
+              {site.primaryCtaLabel}
+            </Link>
+            <Link className="ghost-button" href="/contact#free-trial">
+              {site.secondaryCtaLabel}
+            </Link>
+          </div>
         </div>
       </section>
 
